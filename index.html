@@ -199,23 +199,23 @@
     .field{flex:1 1 100%;}
     .senscard{flex:1 1 100%;}
   }
-  .report-header{border-bottom:3px solid var(--accent); padding-bottom:10px; margin-bottom:16px;}
-  .report-header h1{font-size:19px; margin:0 0 3px;}
-  .report-header .sub{font-size:11px; color:var(--muted);}
-  .report-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
-  .report-box{border:1px solid var(--line); border-radius:8px; padding:10px 14px;}
-  .report-box h3{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); margin:0 0 8px; border-bottom:1px solid var(--line); padding-bottom:5px;}
-  .report-row{display:flex; justify-content:space-between; font-size:12px; padding:2px 0;}
+  .report-header{border-bottom:2px solid var(--accent); padding-bottom:5px; margin-bottom:8px;}
+  .report-header h1{font-size:15px; margin:0 0 2px;}
+  .report-header .sub{font-size:9.5px; color:var(--muted);}
+  .report-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;}
+  .report-box{border:1px solid var(--line); border-radius:6px; padding:6px 10px;}
+  .report-box h3{font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); margin:0 0 4px; border-bottom:1px solid var(--line); padding-bottom:3px;}
+  .report-row{display:flex; justify-content:space-between; font-size:10.5px; padding:1px 0;}
   .report-row span:first-child{color:var(--muted);}
   .report-row span:last-child{font-family:var(--mono); font-weight:600;}
-  .report-hero{background:var(--accent-soft); border:2px solid var(--accent); border-radius:10px; padding:14px 18px; text-align:center; margin-bottom:14px;}
-  .report-hero .num{font-size:30px; font-weight:700; color:var(--accent); font-family:var(--mono);}
-  .report-hero .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);}
-  .report-table{width:100%; border-collapse:collapse; font-size:11px; margin-top:6px;}
-  .report-table th,.report-table td{border:1px solid var(--line); padding:4px 7px; text-align:left;}
+  .report-hero{background:var(--accent-soft); border:2px solid var(--accent); border-radius:8px; text-align:center;}
+  .report-hero .num{color:var(--accent); font-family:var(--mono); text-transform:uppercase; letter-spacing:.02em;}
+  .report-table{width:100%; border-collapse:collapse; font-size:9.5px; margin-top:3px;}
+  .report-table th,.report-table td{border:1px solid var(--line); padding:2px 5px; text-align:left;}
   .report-table th{background:#f0ede4;}
   .report-warn{border:1px solid var(--danger); background:var(--danger-soft); color:var(--danger); border-radius:8px; padding:8px 12px; font-size:11.5px; margin-top:10px;}
   .report-page{page-break-after:always;}
+  @page{margin:10mm;}
   .report-page:last-child{page-break-after:auto;}
   #advTrigger{position:fixed; bottom:0; right:0; width:22px; height:22px; cursor:default; z-index:9999; background:transparent;}
 </style>
@@ -476,6 +476,7 @@
     <div class="actions" style="margin-top:10px;">
       <button class="btn-ghost" id="compareBtn">⚖️ Compare Selected (2–4)</button>
       <button class="btn-ghost" id="reportBtn">📄 Generate Summary Report</button>
+      <label class="btn-ghost" style="display:inline-flex; align-items:center; gap:5px;"><input type="checkbox" id="reportInclBottleneck" checked style="margin:0;"> Include Bottleneck box</label>
     </div>
     <div id="compareCard" class="chartcard" style="display:none;"></div>
 
@@ -1681,14 +1682,14 @@ function buildReportPage(r){
   const dateStr = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
   const titleLine = r.scenarioName ? `${r.scenarioName} — ${r.C}×${r.D} cm` : `Size ${r.C}×${r.D} cm`;
 
+  const inclBottleneck = document.getElementById('reportInclBottleneck').checked;
   let html = `
     <div class="report-header">
       <h1>Tile Production Capacity — Summary Report</h1>
       <div class="sub">${titleLine}, ${r.thick} cm thick · Generated ${dateStr}</div>
     </div>
-    <div class="report-hero">
-      <div class="num">${Math.round(r.AO).toLocaleString()} sqm/day</div>
-      <div class="lbl">Final RL (Saleable) Output</div>
+    <div class="report-hero" style="padding:6px 12px; margin-bottom:8px;">
+      <div class="num" style="font-size:18px;">${Math.round(r.AO).toLocaleString()} sqm/day <span style="font-size:10px; font-weight:400; text-transform:none; color:var(--muted);">— Final RL (Saleable) Output</span></div>
     </div>
     <div class="report-grid">
       <div class="report-box">
@@ -1708,32 +1709,38 @@ function buildReportPage(r){
         <div class="report-row"><span>RL Final Output</span><span>${Math.round(r.AO).toLocaleString()} sqm/d</span></div>
       </div>
     </div>
-    <div class="report-box" style="margin-bottom:14px;">
+    ${inclBottleneck ? `<div class="report-box" style="margin-bottom:8px;">
       <h3>🎯 Bottleneck & Suggestion</h3>
-      <div style="font-size:11.5px;">${getBottleneckText(r)}</div>
-    </div>
-    <div class="report-box" style="margin-bottom:14px;">
+      <div style="font-size:10.5px;">${getBottleneckText(r)}</div>
+    </div>` : ''}
+    <div class="report-box" style="margin-bottom:8px;">
       <h3>Press Detail (${r.pressItemsSnapshot.length} type${r.pressItemsSnapshot.length>1?'s':''})</h3>
       <table class="report-table"><thead><tr><th>#</th><th>Eff. Cavity</th><th>Cycle/min</th><th>Work Hrs/day</th><th>Qty</th></tr></thead><tbody>
       ${r.pressItemsSnapshot.map((p,i)=>`<tr><td>Press ${i+1}</td><td>${p.effCav}</td><td>${p.cyc}</td><td>${p.workHours}</td><td>${p.qty}</td></tr>`).join('')}
       </tbody></table>
     </div>
-    <div class="report-box" style="margin-bottom:14px;">
+    <div class="report-box" style="margin-bottom:8px;">
       <h3>Kiln Detail (${r.kilnItemsSnapshot.filter(k=>k.selected).length}/${r.kilnItemsSnapshot.length} selected)</h3>
       <table class="report-table"><thead><tr><th>#</th><th>Included</th><th>Cycle (min)</th><th>T/R</th><th>T/L</th><th>Utilization%</th></tr></thead><tbody>
       ${r.kilnItemsSnapshot.map((k,i)=>`<tr><td>Kiln ${i+1}</td><td>${k.selected?'Yes':'No'}</td><td>${k.kilnCyc}</td><td>${k.tR}</td><td>${k.tL}</td><td>${k.kilnUtil}%</td></tr>`).join('')}
       </tbody></table>
     </div>
-    <div class="report-box" style="margin-bottom:14px;">
+    <div class="report-box" style="margin-bottom:8px;">
       <h3>Monthly / Yearly Projection</h3>
       <div class="report-row"><span>Monthly Output</span><span>${Math.round(proj.monthlySqm).toLocaleString()} sqm (${Math.round(proj.monthlyWt).toLocaleString()} t)</span></div>
       <div class="report-row"><span>Yearly Output</span><span>${Math.round(proj.yearlySqm).toLocaleString()} sqm (${Math.round(proj.yearlyWt).toLocaleString()} t)</span></div>
     </div>
-    <div class="report-box" style="margin-bottom:14px;">
+    <div class="report-box" style="margin-bottom:8px;">
       <h3>Raw Material Supply Chain</h3>
-      <div class="report-row"><span>Ball Mill Total Capacity</span><span>${rm.ballMillTotal.toFixed(1)} t/d</span></div>
+      <table class="report-table"><thead><tr><th>Item</th><th>Qty</th><th>Capacity</th></tr></thead><tbody>
+      ${ballMills.map((m,i)=>`<tr><td>Ball Mill ${i+1}</td><td>${m.qty}</td><td>${m.cap} t (${m.charges} charges/d)</td></tr>`).join('')}
+      ${sprayDryers.map((m,i)=>`<tr><td>Spray Dryer ${i+1}</td><td>1</td><td>${m.cap} t/hr × ${m.hrs} hrs</td></tr>`).join('')}
+      ${silos.map((m,i)=>`<tr><td>Silo ${i+1}</td><td>${m.qty}</td><td>${m.cap} t each</td></tr>`).join('')}
+      ${slipTanks.map((m,i)=>`<tr><td>Slip Tank ${i+1}</td><td>${m.qty}</td><td>${m.cap} t each</td></tr>`).join('')}
+      </tbody></table>
+      <div class="report-row" style="margin-top:4px;"><span>Ball Mill Total</span><span>${rm.ballMillTotal.toFixed(1)} t/d</span></div>
       <div class="report-row"><span>Dust Reqt + margin</span><span>${rm.dustReqtWithMargin.toFixed(1)} t/d</span></div>
-      <div class="report-row"><span>Spray Dryer Total Capacity</span><span>${rm.sprayTotal.toFixed(1)} t/d</span></div>
+      <div class="report-row"><span>Spray Dryer Total</span><span>${rm.sprayTotal.toFixed(1)} t/d</span></div>
       <div class="report-row"><span>Silo Buffer</span><span>${rm.siloBufferDays.toFixed(1)} days</span></div>
       <div class="report-row"><span>Slip Tank Buffer</span><span>${rm.slipBufferDays.toFixed(1)} days</span></div>
     </div>`;
