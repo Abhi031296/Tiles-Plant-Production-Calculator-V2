@@ -166,7 +166,14 @@
     .tabpanel{display:block !important;}
     body{background:#fff;}
     .stage,.sensbox,.suggestbox,.chartcard,.tablewrap{break-inside:avoid;}
+    .report-box, .report-hero, .report-header{break-inside:avoid; page-break-inside:avoid;}
+    .report-table tr{break-inside:avoid; page-break-inside:avoid;}
   }
+  .report-page.compact .report-table{font-size:8.3px;}
+  .report-page.compact .report-table th,.report-page.compact .report-table td{padding:1px 4px;}
+  .report-page.compact .report-box{padding:4px 9px; margin-bottom:5px !important;}
+  .report-page.compact .report-row{font-size:9.5px; padding:0.5px 0;}
+  .report-page.compact .report-box h3{font-size:8.5px; margin-bottom:2px; padding-bottom:1px;}
   #reportView{display:none;}
   body.report-mode > .wrap > *{display:none !important;}
   body.report-mode #reportView{display:block !important;}
@@ -481,6 +488,7 @@
       <button class="btn-ghost" id="compareBtn">⚖️ Compare Selected (2–4)</button>
       <button class="btn-ghost" id="reportBtn">📄 Generate Summary Report</button>
       <label class="btn-ghost" style="display:inline-flex; align-items:center; gap:5px;"><input type="checkbox" id="reportInclBottleneck" checked style="margin:0;"> Include Bottleneck box</label>
+      <label class="btn-ghost" style="display:inline-flex; align-items:center; gap:5px;"><input type="checkbox" id="reportInclSpPressure" style="margin:0;"> Include Sp. Pressure column</label>
     </div>
     <div id="compareCard" class="chartcard" style="display:none;"></div>
 
@@ -1714,6 +1722,8 @@ function buildReportPage(r){
   const titleLine = r.scenarioName ? `${r.scenarioName} — ${r.C}×${r.D} cm` : `Size ${r.C}×${r.D} cm`;
 
   const inclBottleneck = document.getElementById('reportInclBottleneck').checked;
+  const inclSpPressure = document.getElementById('reportInclSpPressure').checked;
+  const spPressureFor = p => (r.O*r.P*p.effCav)>0 ? (p.pressCap*1000/(r.O*r.P*p.effCav)*(p.pressEff/100)) : 0;
   let html = `
     <div class="report-header">
       <h1>Tile Production Capacity — Summary Report</h1>
@@ -1746,14 +1756,14 @@ function buildReportPage(r){
     </div>` : ''}
     <div class="report-box" style="margin-bottom:8px;">
       <h3>Press Detail (${r.pressItemsSnapshot.length} type${r.pressItemsSnapshot.length>1?'s':''})</h3>
-      <table class="report-table"><thead><tr><th>#</th><th>Eff. Cavity</th><th>Cycle/min</th><th>Work Hrs/day</th><th>Qty</th></tr></thead><tbody>
-      ${r.pressItemsSnapshot.map((p,i)=>`<tr><td>Press ${i+1}</td><td>${p.effCav}</td><td>${p.cyc}</td><td>${p.workHours}</td><td>${p.qty}</td></tr>`).join('')}
+      <table class="report-table"><thead><tr><th>#</th><th>CC Dist (mm)</th><th>Eff. Cavity</th><th>Cycle/min</th><th>Work Hrs/day</th><th>Qty</th>${inclSpPressure?'<th>Sp. Pressure (bar)</th>':''}</tr></thead><tbody>
+      ${r.pressItemsSnapshot.map((p,i)=>`<tr><td>Press ${i+1}</td><td>${p.CCdis}</td><td>${p.effCav}</td><td>${p.cyc}</td><td>${p.workHours}</td><td>${p.qty}</td>${inclSpPressure?`<td>${spPressureFor(p).toFixed(1)}</td>`:''}</tr>`).join('')}
       </tbody></table>
     </div>
     <div class="report-box" style="margin-bottom:8px;">
       <h3>Kiln Detail (${r.kilnItemsSnapshot.filter(k=>k.selected).length}/${r.kilnItemsSnapshot.length} selected)</h3>
-      <table class="report-table"><thead><tr><th>#</th><th>Included</th><th>Cycle (min)</th><th>T/R</th><th>T/L</th><th>Utilization%</th></tr></thead><tbody>
-      ${r.kilnItemsSnapshot.map((k,i)=>`<tr><td>Kiln ${i+1}</td><td>${k.selected?'Yes':'No'}</td><td>${k.kilnCyc}</td><td>${k.tR}</td><td>${k.tL}</td><td>${k.kilnUtil}%</td></tr>`).join('')}
+      <table class="report-table"><thead><tr><th>#</th><th>Included</th><th>Length (m)</th><th>Width (m)</th><th>Cycle (min)</th><th>T/R</th><th>T/L</th><th>Utilization%</th></tr></thead><tbody>
+      ${r.kilnItemsSnapshot.map((k,i)=>`<tr><td>Kiln ${i+1}</td><td>${k.selected?'Yes':'No'}</td><td>${(k.moduleLen*k.moduleCount).toFixed(1)}</td><td>${k.kilnW}</td><td>${k.kilnCyc}</td><td>${k.tR}</td><td>${k.tL}</td><td>${k.kilnUtil}%</td></tr>`).join('')}
       </tbody></table>
     </div>
     <div class="report-box" style="margin-bottom:8px;">
@@ -1763,11 +1773,11 @@ function buildReportPage(r){
     </div>
     <div class="report-box" style="margin-bottom:8px;">
       <h3>Raw Material Supply Chain</h3>
-      <table class="report-table"><thead><tr><th>Item</th><th>Qty</th><th>Capacity</th></tr></thead><tbody>
-      ${ballMills.map((m,i)=>`<tr><td>Ball Mill ${i+1}</td><td>${m.qty}</td><td>${m.cap} t (${m.charges} charges/d)</td></tr>`).join('')}
-      ${sprayDryers.map((m,i)=>`<tr><td>Spray Dryer ${i+1}</td><td>1</td><td>${m.cap} t/hr × ${m.hrs} hrs</td></tr>`).join('')}
-      ${silos.map((m,i)=>`<tr><td>Silo ${i+1}</td><td>${m.qty}</td><td>${m.cap} t each</td></tr>`).join('')}
-      ${slipTanks.map((m,i)=>`<tr><td>Slip Tank ${i+1}</td><td>${m.qty}</td><td>${m.cap} t each</td></tr>`).join('')}
+      <table class="report-table"><thead><tr><th>Item</th><th>Qty</th><th>Capacity</th><th>Total</th></tr></thead><tbody>
+      ${ballMills.map((m,i)=>`<tr><td>Ball Mill ${i+1}</td><td>${m.qty}</td><td>${m.cap} t (${m.charges} charges/d)</td><td>${rm.millTotals[i].toFixed(1)} t/d</td></tr>`).join('')}
+      ${sprayDryers.map((m,i)=>`<tr><td>Spray Dryer ${i+1}</td><td>1</td><td>${m.cap} t/hr × ${m.hrs} hrs</td><td>${rm.dryerTotals[i].toFixed(1)} t/d</td></tr>`).join('')}
+      ${silos.map((m,i)=>`<tr><td>Silo ${i+1}</td><td>${m.qty}</td><td>${m.cap} t each</td><td>${rm.siloTotals[i].toFixed(0)} t</td></tr>`).join('')}
+      ${slipTanks.map((m,i)=>`<tr><td>Slip Tank ${i+1}</td><td>${m.qty}</td><td>${m.cap} t each</td><td>${rm.tankTotals[i].toFixed(0)} t</td></tr>`).join('')}
       </tbody></table>
       <div class="report-row" style="margin-top:4px;"><span>Ball Mill Total</span><span>${rm.ballMillTotal.toFixed(1)} t/d</span></div>
       <div class="report-row"><span>Dust Reqt + margin</span><span>${rm.dustReqtWithMargin.toFixed(1)} t/d</span></div>
@@ -1783,11 +1793,14 @@ function buildReportPage(r){
   }
   return html;
 }
+function reportMachineCount(r){
+  return r.pressItemsSnapshot.length + r.kilnItemsSnapshot.length + ballMills.length + sprayDryers.length + silos.length + slipTanks.length;
+}
 function generateReport(){
   const checked = [...document.querySelectorAll('.cmp-check:checked')].map(cb=>parseInt(cb.dataset.i));
   const scenarioList = checked.length>0 ? checked.map(i=>rows[i]) : [compute()];
   document.getElementById('reportView').innerHTML =
-    scenarioList.map(r=>`<div class="report-page">${buildReportPage(r)}</div>`).join('');
+    scenarioList.map(r=>`<div class="report-page${reportMachineCount(r)>8?' compact':''}">${buildReportPage(r)}</div>`).join('');
 }
 document.getElementById('reportBtn').addEventListener('click', ()=>{
   generateReport();
