@@ -191,9 +191,13 @@
     .modal-box{max-height:92vh; border-radius:10px 10px 0 0;}
     .add-custom-row input{width:100%; flex:1 1 45%;}
     .actions{gap:6px;}
-    .actions button, .btn-ghost{font-size:11.5px; padding:7px 10px;}
+    .actions button, .btn-ghost{font-size:12.5px; padding:9px 12px; min-height:38px;}
     table.catalog-table, .tablewrap table, .compare-table{font-size:11px;}
     .compare-table th,.compare-table td{padding:7px 10px;}
+    input, select, .del, .catalog-btn, .preset-btn, .tab-btn{min-height:40px;}
+    input[type=number], input[type=text]{padding:9px 10px; font-size:13px;}
+    .del{min-width:38px; padding:6px 10px;}
+    .cmp-check, input[type=checkbox]{width:20px; height:20px;}
   }
   @media(max-width:420px){
     .field{flex:1 1 100%;}
@@ -667,7 +671,7 @@ function renderKilnList(){
     cb.addEventListener('change', ()=>{ kilns[parseInt(cb.dataset.kilnsel)].selected = cb.checked; renderKilnList(); render(); });
   });
   container.querySelectorAll('[data-kdel]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ kilns.splice(parseInt(btn.dataset.kdel),1); renderKilnList(); render(); });
+    btn.addEventListener('click', ()=>{ if(!confirm('Delete this Kiln entry?')) return; kilns.splice(parseInt(btn.dataset.kdel),1); renderKilnList(); render(); });
   });
   container.querySelectorAll('.use-ktr-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{ const i=parseInt(btn.dataset.i); kilns[i].tR = kilnSuggestTR(kilns[i]).val; renderKilnList(); render(); });
@@ -744,7 +748,7 @@ function renderPressList(){
     });
   });
   container.querySelectorAll('.del').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ presses.splice(parseInt(btn.dataset.i),1); renderPressList(); render(); });
+    btn.addEventListener('click', ()=>{ if(!confirm('Delete this Press entry?')) return; presses.splice(parseInt(btn.dataset.i),1); renderPressList(); render(); });
   });
   container.querySelectorAll('.use-cav-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -1147,6 +1151,7 @@ function render(){
   renderProjection(r);
   renderWarnings(r);
   if(typeof renderSizeMatrixResult==='function') renderSizeMatrixResult();
+  autoSave();
   return r;
 }
 
@@ -1272,10 +1277,35 @@ document.getElementById('gsSolveBtn').addEventListener('click', ()=>{
   }
   resEl.innerHTML = html;
   const kbtn = document.getElementById('gsApplyKilnBtn');
-  if(kbtn) kbtn.addEventListener('click', ()=>{ kilns = JSON.parse(JSON.stringify(lastGSKiln.k2)); renderKilnList(); render(); });
+  if(kbtn) kbtn.addEventListener('click', ()=>{
+    gsUndoKilns = JSON.parse(JSON.stringify(kilns));
+    kilns = JSON.parse(JSON.stringify(lastGSKiln.k2));
+    renderKilnList(); render();
+    showGSUndo('kiln');
+  });
   const pbtn = document.getElementById('gsApplyPressBtn');
-  if(pbtn) pbtn.addEventListener('click', ()=>{ presses = JSON.parse(JSON.stringify(lastGSPress.p2)); renderPressList(); render(); });
+  if(pbtn) pbtn.addEventListener('click', ()=>{
+    gsUndoPresses = JSON.parse(JSON.stringify(presses));
+    presses = JSON.parse(JSON.stringify(lastGSPress.p2));
+    renderPressList(); render();
+    showGSUndo('press');
+  });
 });
+let gsUndoKilns=null, gsUndoPresses=null;
+function showGSUndo(type){
+  const resEl=document.getElementById('gsResult');
+  if(!resEl) return;
+  const btn=document.createElement('button');
+  btn.type='button'; btn.className='btn-ghost btn-tiny';
+  btn.style.marginTop='6px'; btn.style.marginLeft='6px';
+  btn.textContent='↩ Undo last apply';
+  btn.addEventListener('click', ()=>{
+    if(type==='kiln' && gsUndoKilns){ kilns=gsUndoKilns; gsUndoKilns=null; renderKilnList(); render(); }
+    if(type==='press' && gsUndoPresses){ presses=gsUndoPresses; gsUndoPresses=null; renderPressList(); render(); }
+    btn.remove();
+  });
+  resEl.appendChild(btn);
+}
 
 // ---------- Size × Machine Matrix ----------
 let sizeMatrix=[];
@@ -1548,7 +1578,7 @@ function renderTable(){
   const tbody=document.getElementById('tbody');
   const empty=document.getElementById('emptyNote');
   tbody.innerHTML='';
-  if(rows.length===0){ empty.style.display='block'; renderChart(); return; }
+  if(rows.length===0){ empty.style.display='block'; renderChart(); autoSave(); return; }
   empty.style.display='none';
   const minRL = Math.min(...rows.map(r=>r.AO));
   rows.forEach((r,idx)=>{
@@ -1572,7 +1602,7 @@ function renderTable(){
     });
   });
   tbody.querySelectorAll('.del').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ rows.splice(parseInt(btn.dataset.i),1); renderTable(); });
+    btn.addEventListener('click', ()=>{ if(!confirm('Permanently delete this History scenario?')) return; rows.splice(parseInt(btn.dataset.i),1); renderTable(); });
   });
   tbody.querySelectorAll('.edit-row').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -1584,6 +1614,7 @@ function renderTable(){
     });
   });
   renderChart();
+  autoSave();
 }
 
 document.getElementById('compareBtn').addEventListener('click', ()=>{
@@ -1827,6 +1858,29 @@ document.getElementById('csvImport').addEventListener('change', (e)=>{
   e.target.value='';
 });
 
+// ---------- Auto-save draft (localStorage, silent) ----------
+const AUTOSAVE_KEY = 'tileCalcAutoSaveDraft';
+const AUTOSAVE_FORM_IDS = ['C','D','rectAllow','thick','BD','shrink','glazeEff','yieldRatio','sprayHours',
+  'projDaysPerMonth','projDowntimeMonth','projExtraYearly','engKilnFuel','engFuelCost','engPowerKwh','engPowerCost','sensSlider'];
+function autoSave(){
+  try{
+    const formValues={};
+    AUTOSAVE_FORM_IDS.forEach(id=>{ const el=document.getElementById(id); if(el) formValues[id]=el.value; });
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({formValues, presses, kilns, rows, savedAt:Date.now()}));
+  }catch(e){ /* storage full/unavailable — silently skip, doesn't block the app */ }
+}
+function autoRestore(){
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    if(d.formValues) Object.keys(d.formValues).forEach(id=>{ const el=document.getElementById(id); if(el) el.value=d.formValues[id]; });
+    if(Array.isArray(d.presses) && d.presses.length) presses = d.presses;
+    if(Array.isArray(d.kilns) && d.kilns.length) kilns = d.kilns;
+    if(Array.isArray(d.rows)) rows = d.rows;
+  }catch(e){ /* corrupt draft — ignore, start fresh */ }
+}
+
 // ---------- Full session save/load (#1) ----------
 document.getElementById('sessionSaveBtn').addEventListener('click', ()=>{
   const formIds=['C','D','rectAllow','thick','BD','shrink','glazeEff','yieldRatio','sprayHours',
@@ -1962,12 +2016,21 @@ function renderPresets(){
   });
 }
 
+const __hadDraft = !!localStorage.getItem(AUTOSAVE_KEY);
+autoRestore();
 renderPressList();
 renderKilnList();
 refreshAllMachineLists();
 render();
 renderTable();
 renderPresets();
+if(__hadDraft){
+  const note=document.createElement('div');
+  note.textContent='↩ Previous draft auto-restored (from last auto-save).';
+  note.style.cssText='position:fixed; bottom:10px; left:10px; right:10px; max-width:360px; margin:0 auto; background:var(--accent,#b45524); color:#fff; padding:8px 14px; border-radius:8px; font-size:12px; z-index:999; box-shadow:0 2px 10px rgba(0,0,0,.2); text-align:center;';
+  document.body.appendChild(note);
+  setTimeout(()=>note.remove(), 4000);
+}
 
 // ---------- Hidden Advanced Settings ----------
 const advLabels = {
