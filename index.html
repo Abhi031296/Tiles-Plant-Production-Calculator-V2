@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<meta name="theme-color" content="#b45524">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>GVT Tile Production Capacity Calculator — v4</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --ink:#1c1b18; --paper:#ddf3f1; --card:#ffffff; --line:#d8d4c8;
+    --accent:#b45524; --accent-soft:#f0e2d5; --muted:#7a766b;
+    --good:#2f6b46; --good-soft:#e2efe6; --warn:#a3391c; --warn-soft:#fbe9e2;
+    --danger:#b0201a; --danger-soft:#fce3e1; --caution:#8a6d1a; --caution-soft:#fbf2d5;
+    --mono: 'IBM Plex Mono','SF Mono',Consolas,monospace;
+    --sans: 'IBM Plex Sans','Segoe UI',Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:var(--sans); background:var(--paper); color:var(--ink); padding:20px 20px 60px; line-height:1.5;}
+  .wrap{max-width:1300px;margin:0 auto;}
+  h1{font-size:20px; font-weight:700; letter-spacing:-0.01em; margin:0 0 4px;}
+  h2.section-title{font-size:14px; font-weight:700; margin:24px 0 4px; color:var(--ink);}
+  .sub{color:var(--muted); font-size:12.5px; margin-bottom:14px;}
+  .tabs{display:flex; gap:6px; border-bottom:2px solid var(--line); margin-bottom:18px;}
+  .tab-btn{background:none; border:none; border-bottom:3px solid transparent; color:var(--muted); font-family:var(--sans); font-size:13.5px; font-weight:600; padding:10px 16px; cursor:pointer; margin-bottom:-2px;}
+  .tab-btn.active{color:var(--accent); border-bottom-color:var(--accent);}
+  .tabpanel{display:none;}
+  .tabpanel.active{display:block;}
+  .grid{display:flex; flex-direction:column; gap:12px; margin-bottom:16px;}
+  .stage{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 18px;}
+  .stage h2{flex-basis:100%; width:100%; font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); margin:0 0 2px; font-weight:700; border-bottom:1px solid var(--accent-soft); padding-bottom:7px; display:flex; justify-content:space-between; align-items:center;}
+  .stage.collapsed{padding-bottom:14px;}
+  .stage.collapsed > *:not(h2){display:none;}
+  .hide-toggle{font-size:10px; text-transform:none; letter-spacing:0; color:var(--muted); background:none; border:1px solid var(--line); padding:2px 9px; border-radius:12px; cursor:pointer; font-weight:600;}
+  .hide-toggle:hover{border-color:var(--accent); color:var(--accent);}
+  .stage .sh2note{flex-basis:100%; width:100%; font-size:10px; color:var(--muted); margin:-6px 0 0; font-style:italic;}
+  .field{margin-bottom:0; flex:0 0 auto; min-width:100px;}
+  .field label{display:block; font-size:10px; color:var(--muted); margin-bottom:2px; white-space:nowrap;}
+  .field input{width:100px; padding:5px 7px; font-family:var(--mono); font-size:12.5px; border:1px solid var(--line); border-radius:6px; background:#fdfcf9; color:var(--ink);}
+  .field input:focus{outline:2px solid var(--accent-soft); border-color:var(--accent);}
+  .field.auto label{color:var(--accent);}
+  .field.auto input{background:#fbf3ea; border-color:var(--accent-soft);}
+  .field.auto{min-width:130px;}
+  .field .autotag{font-size:8.5px; color:var(--accent); font-weight:700; letter-spacing:.03em; text-transform:uppercase;}
+  .field .readonly{width:100px; padding:5px 7px; font-family:var(--mono); font-size:12px; border:1px dashed var(--line); border-radius:6px; background:#f0ede4; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .field.wide .readonly, .field.wide input{width:160px;}
+  .result{flex:0 0 auto; min-width:130px; padding:4px 10px; border-left:2px solid var(--accent-soft); font-family:var(--mono); font-size:15px; font-weight:700; color:var(--ink);}
+  .result .unit{font-size:9.5px; color:var(--muted); font-weight:400; font-family:var(--sans); white-space:normal;}
+  .infobox{flex-basis:100%; width:100%; background:#f0ede4; border-radius:8px; padding:8px 12px; margin-top:2px; font-size:10.5px; color:var(--muted); font-family:var(--mono); display:flex; flex-direction:column; gap:4px 18px;}
+  .infobox div{display:flex; gap:5px; white-space:nowrap;}
+  .infobox div{display:flex; gap:5px; white-space:nowrap;}
+  .flowrow{display:flex; align-items:center; gap:6px; margin:18px 0 12px; overflow-x:auto; padding-bottom:4px;}
+  .flowbox{flex:1; min-width:140px; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:9px 11px; text-align:center;}
+  .flowbox.bottleneck{border-color:var(--warn); background:var(--warn-soft);}
+  .flowbox .lbl{font-size:10.5px; color:var(--muted); margin-bottom:2px;}
+  .flowbox .val{font-family:var(--mono); font-size:17px; font-weight:700;}
+  .flowbox.bottleneck .val{color:var(--warn);}
+  .arrow{color:var(--muted); font-size:16px; flex-shrink:0;}
+  .actions{display:flex; gap:10px; margin:8px 0 20px; flex-wrap:wrap;}
+  button{font-family:var(--sans); font-size:12.5px; font-weight:600; padding:8px 14px; border-radius:7px; border:1px solid var(--accent); cursor:pointer;}
+  .btn-primary{background:var(--accent); color:#fff;}
+  .btn-primary:hover{background:#973f18;}
+  .btn-ghost{background:transparent; color:var(--accent);}
+  .btn-ghost:hover{background:var(--accent-soft);}
+  .btn-sm{padding:4px 8px; font-size:10.5px;}
+  .btn-tiny{padding:2px 8px; font-size:10px; border-radius:5px;}
+  .tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--card);}
+  table{width:100%; border-collapse:collapse;}
+  thead th{text-align:center; font-size:9.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); padding:6px 7px; border-bottom:1px solid var(--line); background:#f0ede4; white-space:nowrap; position:relative; overflow:hidden;}
+  tbody td{padding:6px 5px; font-family:var(--mono); font-size:11.5px; border-bottom:1px solid var(--line); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  #historyTable{min-width:600px;}
+  thead th.grp{color:var(--accent); border-left:1px solid var(--line);}
+  #historyTable tbody td:nth-child(2){text-align:left; font-weight:600;}
+  tbody td.calc{background:var(--accent-soft); font-weight:700;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr.top td.calc{color:var(--good); background:var(--good-soft);}
+  .del{background:none; border:none; color:var(--muted); cursor:pointer; font-size:15px; padding:0 4px;}
+  .del:hover{color:var(--warn);}
+  .note{font-size:11.5px; color:var(--muted); margin-top:8px;}
+  .warnbox{background:var(--warn-soft); border:1px solid #e3b199; border-radius:8px; padding:9px 13px; font-size:12px; color:var(--warn); margin-bottom:16px;}
+  .infonote-box{background:#eef1ea; border:1px solid #c7cfc0; border-radius:8px; padding:9px 13px; font-size:12px; color:#3d4a35; margin-bottom:16px;}
+  .warnpanel{border-radius:8px; margin-bottom:16px; overflow:hidden; display:none;}
+  .warnpanel.show{display:block;}
+  .warnpanel h3{margin:0; padding:9px 15px; font-size:12px; text-transform:uppercase; letter-spacing:.03em; background:var(--danger); color:#fff;}
+  .warnpanel h3.caution-only{background:var(--caution);}
+  .warnlist{list-style:none; margin:0; padding:0;}
+  .warnlist li{padding:9px 15px; font-size:12.5px; border-top:1px solid rgba(0,0,0,.06); display:flex; gap:8px;}
+  .warnlist li.err{background:var(--danger-soft); color:var(--danger);}
+  .warnlist li.caution{background:var(--caution-soft); color:var(--caution);}
+  .warnlist li .icon{flex:0 0 auto;}
+  .suggestbox{background:var(--card); border:1px solid var(--warn); border-left:4px solid var(--warn); border-radius:8px; padding:12px 15px; margin-bottom:16px;}
+  .suggestbox h3{margin:0 0 5px; font-size:12px; color:var(--warn); text-transform:uppercase; letter-spacing:.03em;}
+  .suggestbox p{margin:0; font-size:12.5px; color:var(--ink);}
+  .sensbox{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:20px;}
+  .sensbox label{font-size:11.5px; color:var(--muted); display:block; margin-bottom:6px;}
+  .sensrow{display:flex; align-items:center; gap:12px;}
+  .sensrow input[type=range]{flex:1;}
+  .senscompare{display:flex; gap:14px; margin-top:10px; flex-wrap:wrap;}
+  .senscard{background:#f0ede4; border-radius:8px; padding:8px 12px; flex:1; min-width:120px;}
+  .senscard .lbl{font-size:10px; color:var(--muted); text-transform:uppercase;}
+  .senscard .val{font-family:var(--mono); font-size:15px; font-weight:700;}
+  .senscard.delta .val.pos{color:var(--good);}
+  .senscard.delta .val.neg{color:var(--warn);}
+  .preset-row{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center;}
+  .preset-btn{background:var(--card); border:1px solid var(--line); color:var(--ink); font-size:11.5px; font-weight:500; padding:6px 12px; border-radius:20px; cursor:pointer;}
+  .preset-btn:hover{border-color:var(--accent); color:var(--accent);}
+  .rmgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; align-items:start;}
+  @media(max-width:1100px){.rmgrid{grid-template-columns:repeat(2,1fr);}}
+  .machine-item{border:1px solid var(--line); border-radius:8px; padding:8px; margin-bottom:8px; background:#fdfcf9;}
+  .machine-item-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .machine-item-head .letter{font-weight:700; font-size:12px; color:var(--accent);}
+  .machine-row{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;}
+  .machine-row.three{grid-template-columns:1fr 1fr 1fr;}
+  .machine-row>div{display:flex; flex-direction:column; justify-content:flex-end;}
+  .machine-row label{font-size:9.5px; color:var(--muted); display:block; margin-bottom:2px; min-height:2.3em; line-height:1.15;}
+  .machine-row input{width:100%; padding:4px 6px; font-family:var(--mono); font-size:11.5px; border:1px solid var(--line); border-radius:5px;}
+  .machine-total{font-size:11px; font-family:var(--mono); font-weight:700; color:var(--ink); text-align:right;}
+  .statusbadge{display:inline-block; padding:3px 10px; border-radius:12px; font-size:10.5px; font-weight:700; margin-top:6px;}
+  .statusbadge.ok{background:var(--good-soft); color:var(--good);}
+  .statusbadge.bad{background:var(--warn-soft); color:var(--warn);}
+  .chartcard{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin-top:14px;}
+  .modal-overlay{display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(28,27,24,0.55); z-index:100; align-items:center; justify-content:center; padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:var(--card); border-radius:12px; max-width:1000px; width:100%; max-height:85vh; display:flex; flex-direction:column; overflow:hidden;}
+  .modal-box-wide{max-width:1080px;}
+  .modal-head{display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--line);}
+  .modal-head h3{margin:0; font-size:15px; color:var(--ink);}
+  .modal-close{background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer; padding:0 6px;}
+  .modal-close:hover{color:var(--warn);}
+  .modal-search{padding:10px 18px; border-bottom:1px solid var(--line); display:flex; gap:8px; align-items:center;}
+  .modal-search input{flex:1; padding:7px 10px; font-family:var(--sans); font-size:13px; border:1px solid var(--line); border-radius:7px;}
+  .add-custom-row{display:none; gap:6px; padding:10px 18px; border-bottom:1px solid var(--line); background:#faf7f0; flex-wrap:wrap;}
+  .add-custom-row.show{display:flex;}
+  .add-custom-row input{width:110px; padding:6px 8px; font-family:var(--sans); font-size:12px; border:1px solid var(--line); border-radius:6px;}
+  .add-custom-row input#ac_product, .add-custom-row input#ac_size{width:150px;}
+  .add-custom-row input#ac_cavity{width:60px;}
+  .btn-solid{background:var(--accent); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer; font-family:var(--sans);}
+  .btn-solid:hover{opacity:.9;}
+  .modal-body{overflow-y:auto; overflow-x:auto; padding:0;}
+  .catalog-table{width:100%; border-collapse:collapse; table-layout:fixed;}
+  .catalog-table thead th{position:sticky; top:0; background:#f0ede4; text-align:left; font-size:10.5px; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--line); position:relative; overflow:hidden; white-space:nowrap;}
+  .catalog-table tbody td{padding:7px 10px; font-size:12px; border-bottom:1px solid var(--line); font-family:var(--mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .catalog-table tbody tr:hover{background:#faf7f0;}
+  .col-resizer{position:absolute; right:0; top:0; width:6px; height:100%; cursor:col-resize; user-select:none; z-index:2;}
+  .col-resizer:hover, .col-resizer.resizing{background:var(--accent);}
+  .catalog-del{background:none; border:none; color:var(--warn); cursor:pointer; font-size:13px; padding:0 4px;}
+  .glaze-col{display:none;}
+  .custom-badge{font-size:9px; background:var(--accent-soft); color:var(--accent); padding:1px 5px; border-radius:4px; margin-left:5px;}
+  .compare-table{border-collapse:collapse; width:auto; max-width:100%;}
+  .compare-table th,.compare-table td{padding:9px 20px; border-bottom:1px solid var(--line); font-size:12.5px;}
+  .compare-table thead th{background:#f0ede4; text-align:center; font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); white-space:nowrap;}
+  .compare-table thead th:first-child{text-align:left;}
+  .compare-table tbody td{text-align:center; font-family:var(--mono); white-space:nowrap;}
+  .compare-table tbody td:first-child{text-align:left; font-family:var(--sans); font-weight:600; white-space:normal;}
+  .compare-table tbody tr:hover{background:#faf7f0;}
+  .catalog-use-btn{background:var(--accent); color:#fff; border:none; padding:5px 12px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;}
+  .catalog-use-btn:hover{background:#973f18;}
+  .catalog-use-btn:disabled{background:var(--line); cursor:not-allowed;}
+  .catalog-btn{background:transparent; border:1px solid var(--accent); color:var(--accent); font-size:10.5px; font-weight:600; padding:4px 10px; border-radius:6px; cursor:pointer;}
+  .catalog-btn:hover{background:var(--accent-soft);}
+  @media print{
+    .actions,.preset-row,button,.tabs{display:none !important;}
+    .tabpanel{display:block !important;}
+    body{background:#fff;}
+    .stage,.sensbox,.suggestbox,.chartcard,.tablewrap{break-inside:avoid;}
+  }
+  #reportView{display:none;}
+  body.report-mode > .wrap > *{display:none !important;}
+  body.report-mode #reportView{display:block !important;}
+  body.report-mode{background:#fff;}
+
+  /* ---------- Responsive (mobile) ---------- */
+  @media(max-width:700px){
+    body{padding:12px 10px 40px;}
+    h1{font-size:17px;}
+    .tabs{overflow-x:auto; -webkit-overflow-scrolling:touch; flex-wrap:nowrap; margin-bottom:14px;}
+    .tabs .tab-btn{flex:0 0 auto; white-space:nowrap;}
+    .stage{padding:11px 12px; gap:8px 12px;}
+    .field{min-width:0; flex:1 1 45%;}
+    .field.auto{min-width:0; flex:1 1 100%;}
+    .machine-row{grid-template-columns:1fr; gap:6px;}
+    .machine-row.three{grid-template-columns:1fr;}
+    .rmgrid{grid-template-columns:1fr !important;}
+    .report-grid{grid-template-columns:1fr;}
+    .senscompare{gap:8px;}
+    .senscard{min-width:100px; flex:1 1 40%;}
+    .flowbox{min-width:100px;}
+    .modal-box{max-height:92vh; border-radius:10px 10px 0 0;}
+    .add-custom-row input{width:100%; flex:1 1 45%;}
+    .actions{gap:6px;}
+    .actions button, .btn-ghost{font-size:11.5px; padding:7px 10px;}
+    table.catalog-table, .tablewrap table, .compare-table{font-size:11px;}
+    .compare-table th,.compare-table td{padding:7px 10px;}
+  }
+  @media(max-width:420px){
+    .field{flex:1 1 100%;}
+    .senscard{flex:1 1 100%;}
+  }
+  .report-header{border-bottom:3px solid var(--accent); padding-bottom:10px; margin-bottom:16px;}
+  .report-header h1{font-size:19px; margin:0 0 3px;}
+  .report-header .sub{font-size:11px; color:var(--muted);}
+  .report-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
+  .report-box{border:1px solid var(--line); border-radius:8px; padding:10px 14px;}
+  .report-box h3{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); margin:0 0 8px; border-bottom:1px solid var(--line); padding-bottom:5px;}
+  .report-row{display:flex; justify-content:space-between; font-size:12px; padding:2px 0;}
+  .report-row span:first-child{color:var(--muted);}
+  .report-row span:last-child{font-family:var(--mono); font-weight:600;}
+  .report-hero{background:var(--accent-soft); border:2px solid var(--accent); border-radius:10px; padding:14px 18px; text-align:center; margin-bottom:14px;}
+  .report-hero .num{font-size:30px; font-weight:700; color:var(--accent); font-family:var(--mono);}
+  .report-hero .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);}
+  .report-table{width:100%; border-collapse:collapse; font-size:11px; margin-top:6px;}
+  .report-table th,.report-table td{border:1px solid var(--line); padding:4px 7px; text-align:left;}
+  .report-table th{background:#f0ede4;}
+  .report-warn{border:1px solid var(--danger); background:var(--danger-soft); color:var(--danger); border-radius:8px; padding:8px 12px; font-size:11.5px; margin-top:10px;}
+  .report-page{page-break-after:always;}
+  .report-page:last-child{page-break-after:auto;}
+  #advTrigger{position:fixed; bottom:0; right:0; width:22px; height:22px; cursor:default; z-index:9999; background:transparent;}
+</style>
+</head>
+<body>
+<div id="reportView"></div>
+<div id="advTrigger" title="" aria-hidden="true"></div>
+<div class="modal-overlay" id="advModal">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-head">
+      <h3>⚙️ Advanced Settings</h3>
+      <button type="button" class="modal-close" id="advClose">✕</button>
+    </div>
+    <div class="modal-body" style="padding:14px 18px;">
+      <div class="note" style="margin-bottom:10px;">Ye internal assumption ranges hain (Consistency Scan aur Goal Seek ke liye). Session ke liye hi rehte hain, save nahi hote.</div>
+      <div id="advFields"></div>
+      <button type="button" class="btn-solid" id="advSaveBtn" style="margin-top:10px;">Save & Close</button>
+    </div>
+  </div>
+</div>
+<div class="wrap">
+  <h1 style="font-size:28px;">Tile Plant Production Capacity Calculator</h1>
+  <div class="sub" style="font-weight:700; font-size:18px; color:var(--ink);">Created by - Abhishek Singh Rathore</div>
+
+  <div class="infobox" style="display:block; background:#fbe2e2; color:#a3391c; white-space:nowrap; overflow-x:auto;">⚠️ Somtimes cavity formula subtracts an extra "-1" but Sometimes doesn't — so <b>Effective Cavity</b> is never auto-filled, only suggested.</div>
+  <div class="infobox" style="display:block; background:#fbe2e2; color:#a3391c; white-space:nowrap; overflow-x:auto;">⚠️ <b>T/L is very sensitive to rounding</b> — always click "Use suggested value →".</div>
+  <div class="infonote-box">ℹ️ This file cannot use browser storage, so history does <b>not</b> survive closing the tab/browser. Use "History" tab → Export to Excel to save your work, and "Import CSV" next time to bring rows back in.</div>
+
+  <div class="preset-row" id="presetRow"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="production">1️⃣ Production (Press → Kiln → Dust)</button>
+    <button class="tab-btn" data-tab="rawmat">2️⃣ Raw Material Supply Chain</button>
+    <button class="tab-btn" data-tab="history">3️⃣ History & Comparison</button>
+  </div>
+
+  <!-- ============ TAB 1: PRODUCTION ============ -->
+  <div class="tabpanel active" id="tab-production">
+    <div class="rmgrid">
+      <div class="stage">
+        <h2>Product / Tile</h2>
+        <div class="field"><label>Basic Length (cm)</label><input type="number" id="C" value="120"></div>
+        <div class="field"><label>Basic Width (cm)</label><input type="number" id="D" value="60"></div>
+        <div class="field" style="display:none;"><label>Rectification allowance / side (cm)</label><input type="number" id="rectAllow" value="0.3" step="0.05"></div>
+        <div class="field"><label>Thickness (cm)</label><input type="number" id="thick" value="0.9" step="0.05"></div>
+        <div class="field"><label>Bulk Density BD (g/cc)</label><input type="number" id="BD" value="1.85" step="0.01"></div>
+        <div class="field"><label>Shrinkage (%)</label><input type="number" id="shrink" value="9"></div>
+        <div class="infobox" id="tileInfo"></div>
+      </div>
+
+      <div class="stage" id="stage-press" style="display:block;">
+        <h2>Press</h2>
+        <div id="pressList"></div>
+        <button type="button" class="btn-ghost btn-sm" id="addPressBtn">+ Add Press</button>
+        <div class="result" id="out_Ytot" style="margin-top:10px; border-left:none; padding-left:0;">–<div class="unit">Total Press Output — all presses combined, sqm/day</div></div>
+      </div>
+
+      <div class="stage" id="stage-glaze" style="display:none;">
+        <h2>Glaze Line</h2>
+        <div class="field"><label>Glaze Line Efficiency (%)</label><input type="number" id="glazeEff" value="97"></div>
+        <div class="result" id="out_AAtot">–<div class="unit">Total, sqm/day</div></div>
+        <div class="result" id="out_Z">–<div class="unit">Tiles/min (per press)</div></div>
+      </div>
+
+      <div class="stage" id="stage-kiln">
+        <h2>Kiln</h2>
+        <div id="kilnList"></div>
+        <button type="button" class="btn-ghost btn-sm" id="addKilnBtn">+ Add Kiln</button>
+        <div class="result" id="out_AH" style="margin-top:10px; border-left:none; padding-left:0;">–<div class="unit">Total Kiln Output (✓ selected kilns), sqm/day</div></div>
+      </div>
+
+      <div class="stage">
+        <h2>Dust Requirement</h2>
+        <div class="sh2note">Spray-dried powder needed for the press</div>
+        <div class="field"><label>Finished / Raw weight ratio</label><input type="number" id="yieldRatio" value="0.83" step="0.01"></div>
+        <div class="field"><label>Spray Dryer hrs / day</label><input type="number" id="sprayHours" value="21" step="0.5"></div>
+        <div class="infobox" id="dustInfo"></div>
+        <div class="result" id="out_AL">–<div class="unit">Total Dust Requirement, t/h</div></div>
+      </div>
+    </div>
+
+    <div class="warnpanel" id="warnPanel">
+      <h3 id="warnPanelTitle">⚠️ Warnings</h3>
+      <ul class="warnlist" id="warnList"></ul>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <button type="button" class="btn-ghost btn-sm" id="scanBtn">🔍 Scan Inputs for Anomalies</button>
+      <div id="scanResult" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="flowrow" id="flowrow"></div>
+
+    <div class="suggestbox" id="suggestBox">
+      <h3>🎯 Bottleneck & suggestion</h3>
+      <p id="suggestText">–</p>
+    </div>
+
+    <div class="infobox" id="changeLogBox" style="margin-bottom:14px;"></div>
+
+    <h2 class="section-title">🔧 Sensitivity check — Kiln Cycle</h2>
+    <div class="sensbox">
+      <label>Kiln Cycle adjustment (minutes, relative to current value)</label>
+      <div class="sensrow">
+        <span>-10</span>
+        <input type="range" id="sensSlider" min="-10" max="10" step="0.5" value="0">
+        <span>+10</span>
+      </div>
+      <div class="senscompare">
+        <div class="senscard"><div class="lbl">Current Cycle</div><div class="val" id="sens_curCyc">–</div></div>
+        <div class="senscard"><div class="lbl">New Cycle</div><div class="val" id="sens_newCyc">–</div></div>
+        <div class="senscard"><div class="lbl">Current AH</div><div class="val" id="sens_curAH">–</div></div>
+        <div class="senscard"><div class="lbl">New AH</div><div class="val" id="sens_newAH">–</div></div>
+        <div class="senscard delta"><div class="lbl">Change</div><div class="val" id="sens_delta">–</div></div>
+      </div>
+      <div class="note">Live preview only — does NOT change your actual Kiln Cycle field above.</div>
+    </div>
+
+    <h2 class="section-title">🎯 Goal Seek</h2>
+    <div class="sensbox">
+      <div class="machine-row three">
+        <div><label>Target RL Output (sqm/day)</label><input type="number" id="gsTarget" value="30000"></div>
+        <div style="grid-column: span 2;">
+          <label style="font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); display:block; margin-bottom:5px;">Variables to solve for (equal % change applied together)</label>
+          <div style="display:flex; flex-wrap:wrap; gap:12px; font-family:var(--sans); font-size:12px;">
+            <label><input type="checkbox" class="gs-var" value="kilnCyc"> Kiln Cycle</label>
+            <label><input type="checkbox" class="gs-var" value="tR"> T/R</label>
+            <label><input type="checkbox" class="gs-var" value="tL"> T/L</label>
+            <label><input type="checkbox" class="gs-var" value="kilnW"> Kiln Width</label>
+            <label><input type="checkbox" class="gs-var" value="pressCyc"> Press Cycle</label>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn-ghost btn-sm" id="gsSolveBtn" style="margin-top:4px;">Solve →</button>
+      <div id="gsResult" style="margin-top:10px;"></div>
+      <div class="note">Sirf ✓ selected Kilns (multi-kiln) / saari Presses par apply hota hai. Unreachable target ho to warning dikhega.</div>
+    </div>
+
+    <h2 class="section-title">📐 Size × Machine Matrix</h2>
+    <div class="sensbox">
+      <div id="sizeMatrixList"></div>
+      <button type="button" class="btn-ghost btn-sm" id="addSizeBtn">+ Add Size</button>
+      <div id="sizeMatrixResult" style="margin-top:10px; overflow-x:auto;"></div>
+      <div class="note">Cavity/T-R/T-L cells editable hain (suggested value se overwrite kar sakte ho) — Press/Kiln/Dust/RL Output turant recalculate ho jaayega. Thickness/BD/Shrinkage/Yield/Rect. allowance/Spray hrs Product-Tile aur Dust section wale hi globally use hote hain.</div>
+    </div>
+
+    <h2 class="section-title">📅 Monthly / Yearly Projection</h2>
+    <div class="sensbox">
+      <div class="machine-row three">
+        <div><label>Days per month</label><input type="number" id="projDaysPerMonth" value="30" step="1"></div>
+        <div><label>Planned downtime, days/month</label><input type="number" id="projDowntimeMonth" value="2" step="0.5"></div>
+        <div><label>Extra planned shutdown, days/year</label><input type="number" id="projExtraYearly" value="0" step="1"></div>
+      </div>
+      <div class="note" id="projWorkingDaysNote" style="margin-top:2px;">–</div>
+      <div class="senscompare" style="margin-top:10px;">
+        <div class="senscard"><div class="lbl">Daily Output (RL)</div><div class="val" id="proj_daily">–</div></div>
+        <div class="senscard"><div class="lbl">Monthly Output</div><div class="val" id="proj_monthly">–</div></div>
+        <div class="senscard"><div class="lbl">Yearly Output</div><div class="val" id="proj_yearly">–</div></div>
+        <div class="senscard"><div class="lbl">Monthly Wt (t)</div><div class="val" id="proj_monthlyWt">–</div></div>
+        <div class="senscard"><div class="lbl">Yearly Wt (t)</div><div class="val" id="proj_yearlyWt">–</div></div>
+      </div>
+      <div class="note">Based on final RL (saleable) Output/day. Yearly = (365 − monthly downtime×12 − extra yearly shutdown) days.</div>
+    </div>
+
+    <h2 class="section-title">⚡ Energy Estimate (optional)</h2>
+    <div class="sensbox">
+      <div class="machine-row three">
+        <div><label>Kiln fuel consumption (unit/ton fired)</label><input type="number" id="engKilnFuel" value="0" step="0.1"></div>
+        <div><label>Fuel cost (₹/unit)</label><input type="number" id="engFuelCost" value="0" step="0.1"></div>
+        <div><label>Spray Dryer power (kWh/ton)</label><input type="number" id="engPowerKwh" value="0" step="0.1"></div>
+      </div>
+      <div class="machine-row three">
+        <div><label>Power cost (₹/kWh)</label><input type="number" id="engPowerCost" value="0" step="0.1"></div>
+        <div></div><div></div>
+      </div>
+      <div id="engResult" class="note" style="margin-top:4px;">Values 0 chhodo to ye section ignore ho jaayega.</div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 2: RAW MATERIAL ============ -->
+  <div class="tabpanel" id="tab-rawmat">
+    <div class="note" style="margin-bottom:14px;">Checks whether Ball Mills, Spray Dryers, Silos and Slip Tanks can keep up with the Dust Requirement from Tab 1. Add as many units as your plant actually has.</div>
+    <div class="rmgrid">
+      <div class="stage">
+        <h2>Ball Mills</h2>
+        <div id="ballMillList"></div>
+        <button type="button" class="btn-ghost btn-sm" id="addMillBtn">+ Add Mill</button>
+        <div class="field" style="margin-top:10px;"><label>Safety margin on Dust Reqt (%)</label><input type="number" id="millMargin" value="20"></div>
+        <div class="infobox" id="millInfo"></div>
+        <div id="millStatus"></div>
+      </div>
+      <div class="stage">
+        <h2>Spray Dryers</h2>
+        <div id="dryerList"></div>
+        <button type="button" class="btn-ghost btn-sm" id="addDryerBtn">+ Add Dryer</button>
+        <div class="infobox" id="dryerInfo"></div>
+        <div id="dryerStatus"></div>
+      </div>
+      <div class="stage">
+        <h2>Silos</h2>
+        <div id="siloList"></div>
+        <button type="button" class="btn-ghost btn-sm" id="addSiloBtn">+ Add Silo</button>
+        <div class="infobox" id="siloInfo"></div>
+      </div>
+      <div class="stage">
+        <h2>Slip Tanks</h2>
+        <div id="tankList"></div>
+        <button type="button" class="btn-ghost btn-sm" id="addTankBtn">+ Add Tank</button>
+        <div class="infobox" id="tankInfo"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 3: HISTORY ============ -->
+  <div class="tabpanel" id="tab-history">
+    <div class="stage" style="margin-bottom:10px;">
+      <div class="field" style="flex:1 1 200px;"><label>Scenario Name (optional)</label><input type="text" id="scenarioName" placeholder="e.g. Option A - higher cycle"></div>
+      <div class="field" style="flex:2 1 300px;"><label>Note (optional)</label><input type="text" id="scenarioNote" placeholder="e.g. management approval pending"></div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="addBtn">+ Save current setup to History</button>
+      <button class="btn-ghost" id="resetBtn">Reset Tab 1 to default (120×60)</button>
+      <button class="btn-ghost" id="printBtn">🖨️ Print / Save as PDF</button>
+      <button class="btn-ghost" id="xlsxBtn">⬇️ Export full calculation (.xlsx)</button>
+      <button class="btn-ghost" id="csvBtn">⬇️ Export table (CSV)</button>
+      <label class="btn-ghost" style="display:inline-flex; align-items:center;">⬆️ Import CSV<input type="file" id="csvImport" accept=".csv" style="display:none;"></label>
+      <button class="btn-ghost" id="sessionSaveBtn">💾 Save Entire Session (.json)</button>
+      <label class="btn-ghost" style="display:inline-flex; align-items:center;">📂 Load Session<input type="file" id="sessionLoad" accept=".json" style="display:none;"></label>
+    </div>
+
+    <div class="tablewrap">
+    <table id="historyTable" style="table-layout:fixed;">
+      <colgroup>
+        <col style="width:26px"><col style="width:110px"><col style="width:88px"><col style="width:62px"><col style="width:52px"><col style="width:62px"><col style="width:68px"><col style="width:62px"><col style="width:52px"><col style="width:62px"><col style="width:86px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th rowspan="2"></th>
+          <th rowspan="2">Scenario<span class="col-resizer" data-col="1"></span></th>
+          <th colspan="2" class="grp">Press</th>
+          <th colspan="2" class="grp glaze-col">Glaze Line</th>
+          <th colspan="2" class="grp">Kiln</th>
+          <th colspan="1" class="grp">Dust</th>
+          <th rowspan="2">RL O/P<br>sqm/d<span class="col-resizer" data-col="9"></span></th>
+          <th rowspan="2"></th>
+        </tr>
+        <tr>
+          <th># Press types / Qty<span class="col-resizer" data-col="2"></span></th><th>Y total<span class="col-resizer" data-col="3"></span></th>
+          <th class="glaze-col">Glaze Eff%<span class="col-resizer" data-col="4"></span></th><th class="glaze-col">AA total<span class="col-resizer" data-col="5"></span></th>
+          <th># Kilns (sel/tot)<span class="col-resizer" data-col="6"></span></th><th>AH (sqm/d)<span class="col-resizer" data-col="7"></span></th>
+          <th>Dust t/h<span class="col-resizer" data-col="8"></span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    </div>
+    <div class="note" id="emptyNote">History empty — go to Tab 1, set up a scenario, then click "Save current setup to History".</div>
+    <div class="actions" style="margin-top:10px;">
+      <button class="btn-ghost" id="compareBtn">⚖️ Compare Selected (2–4)</button>
+      <button class="btn-ghost" id="reportBtn">📄 Generate Summary Report</button>
+    </div>
+    <div id="compareCard" class="chartcard" style="display:none;"></div>
+
+    <div class="chartcard">
+      <div style="font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); font-weight:700; margin-bottom:8px;">📊 RL Output by size</div>
+      <canvas id="comparisonChart" height="90"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="catalogModal">
+  <div class="modal-box modal-box-wide">
+    <div class="modal-head">
+      <h3>📋 Press Reference Catalog</h3>
+      <button type="button" class="modal-close" id="catalogClose">✕</button>
+    </div>
+    <div class="modal-search">
+      <input type="text" id="catalogSearch" placeholder="Search by Make, Model, Product, or Size...">
+      <button type="button" class="btn-ghost btn-sm" id="toggleAddCustomBtn">+ Add Custom Entry</button>
+    </div>
+    <div class="add-custom-row" id="addCustomRow">
+      <input type="text" id="ac_make" placeholder="Make">
+      <input type="text" id="ac_model" placeholder="Model">
+      <input type="text" id="ac_product" placeholder="Product">
+      <input type="text" id="ac_size" placeholder="Size (e.g. 600 x 600)">
+      <input type="number" id="ac_cavity" placeholder="Cavity">
+      <input type="text" id="ac_thickness" placeholder="Thickness">
+      <input type="text" id="ac_cycle" placeholder="Cycle">
+      <button type="button" class="btn-solid btn-sm" id="ac_addBtn">Add</button>
+    </div>
+    <div class="modal-body">
+      <table class="catalog-table" id="catalogTable">
+        <colgroup>
+          <col style="width:80px"><col style="width:100px"><col style="width:150px"><col style="width:150px"><col style="width:60px"><col style="width:110px"><col style="width:60px"><col style="width:90px">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Make<span class="col-resizer" data-col="0"></span></th>
+            <th>Model<span class="col-resizer" data-col="1"></span></th>
+            <th>Product<span class="col-resizer" data-col="2"></span></th>
+            <th>Size<span class="col-resizer" data-col="3"></span></th>
+            <th>Cavity<span class="col-resizer" data-col="4"></span></th>
+            <th>Thickness<span class="col-resizer" data-col="5"></span></th>
+            <th>Cycle<span class="col-resizer" data-col="6"></span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="catalogTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+function num(id){ const el=document.getElementById(id); return el? (parseFloat(el.value) || 0) : 0; }
+function round1(x){ return Math.round(x*10)/10; }
+function letterName(i){ return i<26 ? String.fromCharCode(65+i) : 'U'+(i+1); }
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- Cavity suggestion (per press item) ----------
+function greenSize(){
+  const C=num('C'), D=num('D'), shrink=num('shrink'), rectAllow=num('rectAllow');
+  const E=C+rectAllow*2, F=D+rectAllow*2;
+  return { O: E/(100-shrink)*100, P: F/(100-shrink)*100 };
+}
+function suggestCavityFor(p){
+  const {P} = greenSize();
+  const raw = (p.CCdis-p.IFgap-p.IFgap+p.GapBC)/(P*10+p.GapBC);
+  return { cav: Math.floor(raw), raw };
+}
+
+// ---------- Advanced (hidden) config — tunable assumption constants ----------
+let advCfg = {
+  thickMin:0.5, thickMax:2, bdMin:1.6, bdMax:2.2, shrinkMin:5, shrinkMax:12,
+  rectMin:0.15, rectMax:0.6, glazeEffMin:85, glazeEffMax:99, yieldMin:0.75, yieldMax:0.92,
+  pressCycMin:2, pressCycMax:18, pressEffMin:80, pressEffMax:99,
+  kilnCycMin:25, kilnCycMax:90, kilnUtilMin:85, gsBoundLo:0.05, gsBoundHi:20
+};
+
+// ---------- Kiln list (dynamic, multiple kilns) ----------
+let kilns = [{moduleLen:2.1, moduleCount:150, kilnW:2.95, kilnCyc:35, kilnGap:0.45, kilnUtil:99, tR:4, tL:236.6218, selected:true}];
+
+function kilnSuggestTR(k){
+  const {P} = greenSize();
+  const kf = 1+k.kilnGap/100;
+  const raw = P>0 ? k.kilnW*100/(P*kf) : 0;
+  return { val: Math.floor(raw), raw };
+}
+function kilnSuggestTL(k){
+  const {O} = greenSize();
+  const AE = k.moduleLen*k.moduleCount;
+  const kf = 1+k.kilnGap/100;
+  const raw = O>0 ? AE*100/(O*kf) : 0;
+  return { val: raw, raw };
+}
+function computeKilnChain(){
+  const {P} = greenSize();
+  const C=num('C'), D=num('D');
+  let AHtotal=0, selectedCount=0;
+  const items = kilns.map(k=>{
+    const AE = k.moduleLen*k.moduleCount;
+    const kf = 1+k.kilnGap/100;
+    const AH = k.kilnCyc>0 ? k.tL*k.tR*C*D*60*24/k.kilnCyc/10000*(k.kilnUtil/100) : 0;
+    const AI = k.kilnW>0 ? k.tR*P*kf/k.kilnW : 0;
+    if(k.selected){ AHtotal += AH; selectedCount++; }
+    return Object.assign({}, k, {AE, AH, AI});
+  });
+  return {items, AHtotal, selectedCount};
+}
+function updateKilnDerived(i){
+  const k = kilns[i];
+  if(!k) return;
+  const AE = k.moduleLen*k.moduleCount;
+  const lenEl = document.querySelector(`[data-klen="${i}"]`);
+  if(lenEl) lenEl.textContent = AE.toFixed(2)+' m';
+  const sTR = kilnSuggestTR(k);
+  const trEl = document.querySelector(`[data-ksuggtr="${i}"]`);
+  if(trEl){
+    trEl.innerHTML = `Auto T/R: <b>${sTR.val}</b> (raw: ${sTR.raw.toFixed(2)}) <button type="button" class="btn-ghost btn-tiny use-ktr-btn" data-i="${i}">Use suggested →</button>`;
+    trEl.querySelector('.use-ktr-btn').addEventListener('click', ()=>{ kilns[i].tR = kilnSuggestTR(kilns[i]).val; renderKilnList(); render(); });
+  }
+  const sTL = kilnSuggestTL(k);
+  const tlEl = document.querySelector(`[data-ksuggtl="${i}"]`);
+  if(tlEl){
+    tlEl.innerHTML = `Auto T/L: <b>${sTL.val.toFixed(4)}</b> — use ALL decimals <button type="button" class="btn-ghost btn-tiny use-ktl-btn" data-i="${i}">Use suggested →</button>`;
+    tlEl.querySelector('.use-ktl-btn').addEventListener('click', ()=>{ kilns[i].tL = parseFloat(kilnSuggestTL(kilns[i]).val.toFixed(4)); renderKilnList(); render(); });
+  }
+}
+function updateAllKilnDerived(){ kilns.forEach((k,i)=>updateKilnDerived(i)); }
+
+function renderKilnList(){
+  const container=document.getElementById('kilnList');
+  container.innerHTML='';
+  kilns.forEach((k,i)=>{
+    const AE = k.moduleLen*k.moduleCount;
+    const sTR = kilnSuggestTR(k), sTL = kilnSuggestTL(k);
+    const div=document.createElement('div');
+    div.className='machine-item';
+    div.innerHTML=`
+      <div class="machine-item-head">
+        <label style="display:inline-flex; align-items:center; gap:5px; font-family:var(--sans); font-size:12px; font-weight:700; color:var(--accent); cursor:pointer;">
+          <input type="checkbox" data-kilnsel="${i}" ${k.selected?'checked':''}> Kiln ${i+1}${k.selected?'':' (excluded from total)'}
+        </label>
+        ${kilns.length>1?`<button type="button" class="del" data-kdel="${i}">✕</button>`:''}
+      </div>
+      <div class="machine-row three">
+        <div><label>Module length (m)</label><input type="number" step="0.1" data-kfield="moduleLen" data-i="${i}" value="${k.moduleLen}"></div>
+        <div><label>Module count</label><input type="number" data-kfield="moduleCount" data-i="${i}" value="${k.moduleCount}"></div>
+        <div><label>Kiln Length (m)</label><div class="readonly" data-klen="${i}">${AE.toFixed(2)} m</div></div>
+      </div>
+      <div class="machine-row three">
+        <div><label>Kiln Width (m)</label><input type="number" step="0.05" data-kfield="kilnW" data-i="${i}" value="${k.kilnW}"></div>
+        <div><label>Kiln Cycle (min)</label><input type="number" data-kfield="kilnCyc" data-i="${i}" value="${k.kilnCyc}"></div>
+        <div><label>Row spacing allowance (%)</label><input type="number" step="0.01" data-kfield="kilnGap" data-i="${i}" value="${k.kilnGap}"></div>
+      </div>
+      <div class="note" data-ksuggtr="${i}" style="margin:2px 0 6px;">Auto T/R: <b>${sTR.val}</b> (raw: ${sTR.raw.toFixed(2)}) <button type="button" class="btn-ghost btn-tiny use-ktr-btn" data-i="${i}">Use suggested →</button></div>
+      <div class="machine-row three">
+        <div><label>T/R</label><input type="number" data-kfield="tR" data-i="${i}" value="${k.tR}"></div>
+        <div><label>Kiln Utilization (%)</label><input type="number" data-kfield="kilnUtil" data-i="${i}" value="${k.kilnUtil}"></div>
+        <div></div>
+      </div>
+      <div class="note" data-ksuggtl="${i}" style="margin:2px 0 6px;">Auto T/L: <b>${sTL.val.toFixed(4)}</b> — use ALL decimals <button type="button" class="btn-ghost btn-tiny use-ktl-btn" data-i="${i}">Use suggested →</button></div>
+      <div class="machine-row three">
+        <div><label>T/L</label><input type="number" step="0.0001" data-kfield="tL" data-i="${i}" value="${k.tL}"></div>
+        <div></div><div></div>
+      </div>
+      <div class="machine-total" data-kout="${i}"></div>`;
+    container.appendChild(div);
+  });
+  container.querySelectorAll('input[data-kfield]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const i=parseInt(inp.dataset.i), f=inp.dataset.kfield;
+      kilns[i][f] = parseFloat(inp.value)||0;
+      updateKilnDerived(i);
+      render();
+    });
+  });
+  container.querySelectorAll('[data-kilnsel]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{ kilns[parseInt(cb.dataset.kilnsel)].selected = cb.checked; renderKilnList(); render(); });
+  });
+  container.querySelectorAll('[data-kdel]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ kilns.splice(parseInt(btn.dataset.kdel),1); renderKilnList(); render(); });
+  });
+  container.querySelectorAll('.use-ktr-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ const i=parseInt(btn.dataset.i); kilns[i].tR = kilnSuggestTR(kilns[i]).val; renderKilnList(); render(); });
+  });
+  container.querySelectorAll('.use-ktl-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ const i=parseInt(btn.dataset.i); kilns[i].tL = parseFloat(kilnSuggestTL(kilns[i]).val.toFixed(4)); renderKilnList(); render(); });
+  });
+}
+function renderKilnOutputs(){
+  const {items} = computeKilnChain();
+  items.forEach((it,i)=>{
+    const el=document.querySelector(`[data-kout="${i}"]`);
+    if(el) el.textContent = `${Math.round(it.AH).toLocaleString()} sqm/day ${it.selected?'✓ included':'(excluded)'} · Width Util ${it.AI.toFixed(1)}%`;
+  });
+}
+document.getElementById('addKilnBtn').addEventListener('click', ()=>{
+  kilns.push({moduleLen:2.1, moduleCount:150, kilnW:2.95, kilnCyc:35, kilnGap:0.45, kilnUtil:99, tR:4, tL:236.6218, selected:true});
+  renderKilnList();
+  render();
+});
+
+// ---------- Press list (dynamic, multiple press types) ----------
+let presses = [{CCdis:2450, IFgap:100, GapBC:90, effCav:2, pressCap:7890, pressEff:90, cyc:8, workHours:21.6, qty:1}];
+
+function updateCavityNote(i){
+  const el = document.querySelector(`[data-suggcav="${i}"]`);
+  if(!el || !presses[i]) return;
+  const s = suggestCavityFor(presses[i]);
+  el.innerHTML = `Auto-suggested cavity: <b>${s.cav}</b> (raw: ${s.raw.toFixed(2)}) <button type="button" class="btn-ghost btn-tiny use-cav-btn" data-i="${i}">Use suggested →</button>`;
+  el.querySelector('.use-cav-btn').addEventListener('click', ()=>{
+    presses[i].effCav = suggestCavityFor(presses[i]).cav;
+    renderPressList();
+    render();
+  });
+}
+function updateAllCavityNotes(){
+  presses.forEach((p,i)=>updateCavityNote(i));
+}
+
+function renderPressList(){
+  const container=document.getElementById('pressList');
+  container.innerHTML='';
+  presses.forEach((p,i)=>{
+    const s = suggestCavityFor(p);
+    const div=document.createElement('div');
+    div.className='machine-item';
+    div.innerHTML=`
+      <div class="machine-item-head"><span class="letter">Press ${i+1}</span><span><button type="button" class="catalog-btn open-catalog-btn" data-i="${i}">📋 Catalog</button> ${presses.length>1?`<button type="button" class="del" data-i="${i}">✕</button>`:''}</span></div>
+      <div class="machine-row three">
+        <div><label>CC Distance (mm)</label><input type="number" data-field="CCdis" data-i="${i}" value="${p.CCdis}"></div>
+        <div><label>I/F Gap (mm)</label><input type="number" data-field="IFgap" data-i="${i}" value="${p.IFgap}"></div>
+        <div><label>Gap Between Cavity (mm)</label><input type="number" data-field="GapBC" data-i="${i}" value="${p.GapBC}"></div>
+      </div>
+      <div class="note" style="margin:2px 0 6px;" data-suggcav="${i}">Auto-suggested cavity: <b>${s.cav}</b> (raw: ${s.raw.toFixed(2)}) <button type="button" class="btn-ghost btn-tiny use-cav-btn" data-i="${i}">Use suggested →</button></div>
+      <div class="machine-row three">
+        <div><label>Effective Cavity</label><input type="number" data-field="effCav" data-i="${i}" value="${p.effCav}"></div>
+        <div><label>Press Capacity (Tons)</label><input type="number" data-field="pressCap" data-i="${i}" value="${p.pressCap}"></div>
+        <div><label>Press Efficiency (%)</label><input type="number" data-field="pressEff" data-i="${i}" value="${p.pressEff}"></div>
+      </div>
+      <div class="machine-row three">
+        <div><label>Press Cycle (/min)</label><input type="number" data-field="cyc" data-i="${i}" value="${p.cyc}"></div>
+        <div><label>Working hours/day</label><input type="number" step="0.1" data-field="workHours" data-i="${i}" value="${p.workHours}"></div>
+        <div><label>Quantity (× identical presses)</label><input type="number" data-field="qty" data-i="${i}" value="${p.qty}"></div>
+      </div>
+      <div class="machine-total" data-out="${i}"></div>`;
+    container.appendChild(div);
+  });
+  container.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const i=parseInt(inp.dataset.i), f=inp.dataset.field;
+      presses[i][f] = parseFloat(inp.value)||0;
+      updateCavityNote(i);
+      render();
+    });
+  });
+  container.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ presses.splice(parseInt(btn.dataset.i),1); renderPressList(); render(); });
+  });
+  container.querySelectorAll('.use-cav-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i=parseInt(btn.dataset.i);
+      presses[i].effCav = suggestCavityFor(presses[i]).cav;
+      renderPressList();
+      render();
+    });
+  });
+  container.querySelectorAll('.open-catalog-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ openCatalog(parseInt(btn.dataset.i)); });
+  });
+}
+document.getElementById('addPressBtn').addEventListener('click', ()=>{
+  presses.push({CCdis:2450, IFgap:100, GapBC:90, effCav:2, pressCap:7890, pressEff:90, cyc:8, workHours:21.6, qty:1});
+  renderPressList();
+  render();
+});
+
+// ---------- Press Reference Catalog (popup) ----------
+const pressCatalog = [
+  {make:'Sacmi',model:'PH-1600',product:'',size:'300 x 300',cavity:3,thickness:'8',cycle:9,custom:false},
+  {make:'Sacmi',model:'PH-1600',product:'',size:'300 x 300',cavity:3,thickness:'10',cycle:9,custom:false},
+  {make:'Sacmi',model:'PH-1600',product:'',size:'300 x 300',cavity:3,thickness:'12',cycle:9,custom:false},
+  {make:'Sacmi',model:'PH-1600',product:'',size:'300 x 300',cavity:3,thickness:'15',cycle:9,custom:false},
+  {make:'Sacmi',model:'PH-1600',product:'',size:'300 x 300',cavity:3,thickness:'25',cycle:9,custom:false},
+  {make:'Sacmi',model:'PH-1600',product:'',size:'200 x 100',cavity:8,thickness:'20',cycle:'N/A',custom:false},
+  {make:'Sacmi',model:'PH-1600',product:'',size:'247 x 122 (pool)',cavity:7,thickness:'8',cycle:11,custom:false},
+  {make:'Sacmi',model:'PH-1600',product:'',size:'240 x 75',cavity:10,thickness:'5.5',cycle:'N/A',custom:false},
+  {make:'SACMI',model:'PH-2000',product:'Wall',size:'300 x 450',cavity:4,thickness:'7.8 -8.2',cycle:9,custom:false},
+  {make:'SACMI',model:'PH-2000',product:'Floor',size:'300 x 300',cavity:4,thickness:'7.8 - 8.2',cycle:14,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'300 x 300',cavity:4,thickness:'8',cycle:8,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'300 x 300',cavity:4,thickness:'10',cycle:8,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'300 x 300',cavity:4,thickness:'12',cycle:8,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'300 x 300',cavity:4,thickness:'15',cycle:8,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'300 x 300 (Tech tile)',cavity:4,thickness:'12',cycle:8,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'300 x 300 (Tech tile)',cavity:4,thickness:'15',cycle:8,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'400 x 400',cavity:2,thickness:'11',cycle:8,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'400 x 400',cavity:2,thickness:'12',cycle:8,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'600 x 600',cavity:1,thickness:'10',cycle:7,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'240 x 360',cavity:4,thickness:'15',cycle:8,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'240 x 240',cavity:4,thickness:'15',cycle:8,custom:false},
+  {make:'SACMI',model:'Ph-2000',product:'Endura / Core Endura',size:'240 x 120',cavity:7,thickness:'15',cycle:8,custom:false},
+  {make:'SACMI',model:'PH-2090',product:'Wall',size:'300 x 450',cavity:4,thickness:'7.8 -8.2',cycle:9,custom:false},
+  {make:'SACMI',model:'PH-2090',product:'Wall',size:'300 x 300',cavity:4,thickness:'7.8 -8.2',cycle:12,custom:false},
+  {make:'SACMI',model:'PH-2090',product:'Floor',size:'300 x 300',cavity:4,thickness:'7.8 -8.2',cycle:14,custom:false},
+  {make:'SACMI',model:'PH-2090',product:'Floor H T',size:'300 x 300',cavity:4,thickness:'8.8 - 9.2',cycle:12,custom:false},
+  {make:'SACMI',model:'PH-2090',product:'Floor',size:'400 x 400',cavity:3,thickness:'8.6 - 9.0',cycle:11,custom:false},
+  {make:'SACMI',model:'PH-2890',product:'Wall',size:'300 x 450',cavity:4,thickness:'7.8 - 8.2',cycle:9,custom:false},
+  {make:'SACMI',model:'PH-2890',product:'Floor',size:'400 x 400',cavity:3,thickness:'8.6 - 9.0',cycle:11,custom:false},
+  {make:'SACMI',model:'PH-2890',product:'Floor H T',size:'400 x 400',cavity:3,thickness:'11.8 - 12.2',cycle:9,custom:false},
+  {make:'SACMI',model:'PH-2890',product:'Floor',size:'600 x 600',cavity:2,thickness:'9.3 - 9.7',cycle:10,custom:false},
+  {make:'SACMI',model:'PH-2890',product:'Floor',size:'600 x 1200',cavity:1,thickness:'9.6 - 9.9',cycle:6,custom:false},
+  {make:'SACMI',model:'PH-5211',product:'GVT',size:'600 x 600',cavity:2,thickness:'8.92 9.2',cycle:10,custom:false},
+  {make:'SACMI',model:'PH-5211',product:'GVT',size:'600 x 1200',cavity:1,thickness:'8.92 9.2',cycle:11,custom:false},
+  {make:'SACMI',model:'PH-5211',product:'S&P and DC',size:'600 x 600',cavity:2,thickness:'9.6-10',cycle:7,custom:false},
+  {make:'SACMI',model:'PH-5211',product:'S&P and DC',size:'600 x 1200',cavity:1,thickness:'9.6-10',cycle:7,custom:false},
+  {make:'SACMI',model:'PH-6500',product:'GVT',size:'600 x 600',cavity:3,thickness:'8.92 - 9.2',cycle:8,custom:false},
+  {make:'SACMI',model:'PH-6500',product:'GVT',size:'600 x 1200',cavity:1,thickness:'8.92 - 9.2',cycle:10,custom:false},
+  {make:'SACMI',model:'PH-6500',product:'GVT',size:'800 x 1600',cavity:1,thickness:'9.12 - 10.2',cycle:6,custom:false},
+  {make:'SACMI',model:'PH-6500',product:'S&P and DC',size:'600 x 600',cavity:3,thickness:'9.6 - 10',cycle:7,custom:false},
+  {make:'SACMI',model:'PH-6500',product:'S&P and DC',size:'600 x 1200',cavity:1,thickness:'9.6 - 10',cycle:7,custom:false},
+  {make:'HLT',model:'YP-4000',product:'',size:'300 x 300',cavity:8,thickness:'10',cycle:8,custom:false},
+  {make:'HLT',model:'YP-4000',product:'',size:'300 x 300',cavity:8,thickness:'15',cycle:5,custom:false},
+  {make:'HLT',model:'YP-4000',product:'',size:'300 x 300',cavity:8,thickness:'20',cycle:3,custom:false},
+  {make:'HLT',model:'YP-4000',product:'',size:'600 x 600',cavity:2,thickness:'20',cycle:3,custom:false},
+];
+
+let catalogTargetIndex = -1;
+
+function renderCatalogTable(filterText){
+  const tbody=document.getElementById('catalogTbody');
+  tbody.innerHTML='';
+  const f=(filterText||'').toLowerCase();
+  pressCatalog.forEach((row,idx)=>{
+    const hay=(row.make+' '+row.model+' '+row.product+' '+row.size).toLowerCase();
+    if(f && !hay.includes(f)) return;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${row.make}</td><td>${row.model}${row.custom?'<span class="custom-badge">custom</span>':''}</td><td>${row.product||'—'}</td><td>${row.size}</td><td>${row.cavity}</td><td>${row.thickness}</td><td>${row.cycle}</td>
+      <td style="white-space:nowrap;"><button type="button" class="catalog-use-btn" data-idx="${idx}">Use →</button>${row.custom?`<button type="button" class="catalog-del" data-delidx="${idx}" title="Delete custom entry">✕</button>`:''}</td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('.catalog-use-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const row = pressCatalog[parseInt(btn.dataset.idx)];
+      if(catalogTargetIndex>=0 && presses[catalogTargetIndex]){
+        presses[catalogTargetIndex].effCav = row.cavity;
+        if(row.cycle!=='N/A') presses[catalogTargetIndex].cyc = row.cycle;
+        renderPressList();
+        render();
+      }
+      closeCatalog();
+    });
+  });
+  tbody.querySelectorAll('.catalog-del').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      pressCatalog.splice(parseInt(btn.dataset.delidx),1);
+      renderCatalogTable(document.getElementById('catalogSearch').value);
+    });
+  });
+}
+function openCatalog(targetIndex){
+  catalogTargetIndex = targetIndex;
+  document.getElementById('catalogSearch').value='';
+  renderCatalogTable('');
+  document.getElementById('catalogModal').classList.add('open');
+}
+function closeCatalog(){
+  document.getElementById('catalogModal').classList.remove('open');
+}
+document.getElementById('catalogClose').addEventListener('click', closeCatalog);
+document.getElementById('catalogModal').addEventListener('click', (e)=>{ if(e.target.id==='catalogModal') closeCatalog(); });
+document.getElementById('catalogSearch').addEventListener('input', (e)=>renderCatalogTable(e.target.value));
+
+// ---------- Add custom press entry ----------
+document.getElementById('toggleAddCustomBtn').addEventListener('click', ()=>{
+  document.getElementById('addCustomRow').classList.toggle('show');
+});
+document.getElementById('ac_addBtn').addEventListener('click', ()=>{
+  const make = document.getElementById('ac_make').value.trim();
+  const model = document.getElementById('ac_model').value.trim();
+  const product = document.getElementById('ac_product').value.trim();
+  const size = document.getElementById('ac_size').value.trim();
+  const cavity = parseFloat(document.getElementById('ac_cavity').value) || 0;
+  const thickness = document.getElementById('ac_thickness').value.trim();
+  const cycleRaw = document.getElementById('ac_cycle').value.trim();
+  const cycle = cycleRaw==='' ? 'N/A' : (isNaN(parseFloat(cycleRaw)) ? cycleRaw : parseFloat(cycleRaw));
+  if(!make || !model || cavity<=0){
+    alert('Make, Model aur Cavity (>0) zaroori hai.');
+    return;
+  }
+  pressCatalog.push({make,model,product,size,cavity,thickness,cycle,custom:true});
+  ['ac_make','ac_model','ac_product','ac_size','ac_cavity','ac_thickness','ac_cycle'].forEach(id=>{ document.getElementById(id).value=''; });
+  renderCatalogTable(document.getElementById('catalogSearch').value);
+});
+
+// ---------- Excel-style column width resizing (reusable) ----------
+function attachColumnResize(tableId){
+  const table = document.getElementById(tableId);
+  if(!table) return;
+  const cols = table.querySelectorAll('colgroup col');
+  let curCol=null, curTh=null, startX=0, startWidth=0;
+  table.querySelectorAll('.col-resizer').forEach(resizer=>{
+    const idx = parseInt(resizer.dataset.col);
+    if(isNaN(idx) || idx>=cols.length) return;
+    resizer.addEventListener('mousedown', (e)=>{
+      curCol = cols[idx];
+      curTh = resizer.closest('th');
+      startX = e.pageX;
+      startWidth = curTh.offsetWidth;
+      resizer.classList.add('resizing');
+      e.preventDefault();
+    });
+  });
+  document.addEventListener('mousemove', (e)=>{
+    if(!curCol) return;
+    const newWidth = Math.max(30, startWidth + (e.pageX - startX));
+    curCol.style.width = newWidth+'px';
+  });
+  document.addEventListener('mouseup', ()=>{
+    if(curCol) table.querySelectorAll('.col-resizer.resizing').forEach(r=>r.classList.remove('resizing'));
+    curCol=null;
+  });
+}
+attachColumnResize('catalogTable');
+attachColumnResize('historyTable');
+
+function computePressChain(){
+  const {O,P} = greenSize();
+  const C=num('C'), D=num('D');
+  let Ytot=0, Ztot=0;
+  const items = presses.map(p=>{
+    const W = (O*P*p.effCav)>0 ? p.pressCap*1000/(O*P*p.effCav)*(p.pressEff/100) : 0;
+    const Y = p.workHours*60*p.cyc*p.effCav*C*D/10000;
+    const total = Y*p.qty;
+    Ytot += total;
+    Ztot += p.cyc*p.effCav*p.qty;
+    return Object.assign({}, p, {W, Y, total});
+  });
+  return {items, Ytot, Ztot};
+}
+function renderPressOutputs(){
+  const {items} = computePressChain();
+  items.forEach((it,i)=>{
+    const el=document.querySelector(`[data-out="${i}"]`);
+    if(el) el.textContent = `${it.W.toFixed(1)} bar · ${Math.round(it.Y).toLocaleString()} sqm/day each → ${Math.round(it.total).toLocaleString()} sqm/day total (×${it.qty})`;
+  });
+}
+
+// ---------- Core compute ----------
+function compute(){
+  const C=num('C'), D=num('D'), rectAllow=num('rectAllow'), thick=num('thick'), BD=num('BD'), shrink=num('shrink');
+  const glazeEff=num('glazeEff');
+
+  const rectTotal = rectAllow*2;
+  const E = C+rectTotal, F = D+rectTotal;
+  const K = F*E/10000;
+  const Vol = thick*F*E;
+  const M = Vol*BD;
+  const N = K>0 ? M/K/1000 : 0;
+  const O = E/(100-shrink)*100;
+  const P = F/(100-shrink)*100;
+
+  const pressChain = computePressChain();
+  const Ytot = pressChain.Ytot;
+  const Zmin = pressChain.Ztot;
+  const AAtot = Ytot*(glazeEff/100);
+
+  const kilnChain = computeKilnChain();
+  const AH = kilnChain.AHtotal;
+  const AO = (E*F)>0 ? AH*(E-rectTotal)*(F-rectTotal)/(E*F) : 0;
+
+  const yieldRatio=num('yieldRatio'), sprayHours=num('sprayHours');
+  const AJ = AH*BD*thick/100;
+  const AK = yieldRatio>0 ? AJ/yieldRatio : 0;
+  const AL = sprayHours>0 ? AK/sprayHours : 0;
+  const AKtotalPerDay = AK;
+
+  return {C,D,E,F,K,Vol,M,N,O,P,Ytot,Zmin,pressItemsSnapshot:JSON.parse(JSON.stringify(presses)),
+          glazeEff,AAtot, kilnItemsSnapshot:JSON.parse(JSON.stringify(kilns)), AH,AO,
+          yieldRatio,sprayHours,AJ,AK,AL,AKtotalPerDay,BD,thick,rectAllow,shrink};
+}
+
+function getBottleneckText(r){
+  const stages=[
+    {name:'Press', val:r.Ytot, tip:'Press sabse kam output de raha hai. Try: Effective Cavity badhao (agar press bed allow kare), Press Cycle (/min) badhao, Working hours/day badhao, ya Number of Presses badhao.'},
+    {name:'Kiln', val:r.AO, tip:'Kiln sabse kam output de raha hai. Try: Kiln Cycle time kam karo, T/R ya T/L badhao, ya Kiln Utilization % badhao.'}
+  ];
+  stages.sort((a,b)=>a.val-b.val);
+  const worst=stages[0], second=stages[1];
+  const gap = second.val>0 ? ((second.val-worst.val)/worst.val*100) : 0;
+  return `<b>${worst.name}</b> is the bottleneck at <b>${Math.round(worst.val).toLocaleString()} sqm/day</b> `+
+    `(next stage: ${second.name} at ${Math.round(second.val).toLocaleString()}, ${gap.toFixed(0)}% higher).<br><br>${worst.tip}`;
+}
+function bottleneckSuggestion(r){
+  document.getElementById('suggestText').innerHTML = getBottleneckText(r);
+}
+
+// ---------- Automatic warnings ----------
+function collectWarnings(r){
+  const w = [];
+  const add = (level,msg)=> w.push({level,msg});
+
+  if(r.C<=0 || r.D<=0) add('err','Basic Length/Width 0 ya negative hai — sab calculations invalid honge.');
+  if(r.thick<=0) add('err','Thickness 0 ya negative hai.');
+  if(r.BD<=0) add('err','Bulk Density (BD) 0 ya negative hai.');
+  if(r.shrink>=100) add('err','Shrinkage% 100 ya usse zyada hai — Green size calculation invalid ho jaayega (division by zero/negative).');
+  else if(r.shrink<0) add('err','Shrinkage% negative nahi ho sakta.');
+  if(r.rectAllow<0) add('caution','Rectification allowance negative hai — check karo.');
+
+  presses.forEach((p,i)=>{
+    const label = `Press ${i+1}`;
+    if(p.effCav<=0) add('err',`${label}: Effective Cavity 0 ya negative hai.`);
+    if(p.pressCap<=0) add('err',`${label}: Press Capacity 0 ya negative hai.`);
+    if(p.cyc<=0) add('err',`${label}: Press Cycle 0 ya negative hai.`);
+    if(p.workHours<=0) add('err',`${label}: Working hours/day 0 ya negative hai.`);
+    if(p.pressEff<=0 || p.pressEff>100) add('caution',`${label}: Press Efficiency 0-100% ke bahar hai (${p.pressEff}%).`);
+    if(p.CCdis<=0) add('err',`${label}: CC Distance 0 ya negative hai.`);
+    if(p.qty<=0) add('caution',`${label}: Quantity 0 hai — ye press output mein count nahi ho raha.`);
+    const sugg = suggestCavityFor(p);
+    if(p.effCav > sugg.cav){
+      add('err',`${label}: Effective Cavity (${p.effCav}) press bed mein physically fit nahi hoga — CC Distance/Gap ke hisaab se max ${sugg.cav} hi fit hota hai (raw: ${sugg.raw.toFixed(2)}).`);
+    }
+  });
+  if(presses.length===0) add('err','Koi Press entry nahi hai — output zero aayega.');
+
+  if(r.glazeEff<=0 || r.glazeEff>100) add('caution',`Glaze Line Efficiency 0-100% ke bahar hai (${r.glazeEff}%).`);
+
+  const kChain = computeKilnChain();
+  if(kChain.selectedCount===0) add('err','Koi Kiln select (✓) nahi hai — Kiln Output 0 aayega.');
+  kChain.items.forEach((k,i)=>{
+    const label = `Kiln ${i+1}`;
+    if(k.kilnCyc<=0) add('err',`${label}: Kiln Cycle 0 ya negative hai.`);
+    if(k.kilnW<=0) add('err',`${label}: Kiln Width 0 ya negative hai.`);
+    if(k.kilnUtil<=0 || k.kilnUtil>100) add('caution',`${label}: Kiln Utilization% 0-100% ke bahar hai (${k.kilnUtil}%).`);
+    if(k.AI>100) add('err',`${label}: Width Utilization ${k.AI.toFixed(1)}% hai — tiles kiln ki width mein physically fit nahi honge. T/R kam karo ya Kiln Width badhao.`);
+    else if(k.AI<50 && k.AI>0 && k.selected) add('caution',`${label}: Width Utilization sirf ${k.AI.toFixed(1)}% hai — capacity waste ho raha hai.`);
+    const sTR = kilnSuggestTR(k);
+    if(k.tR > sTR.val) add('err',`${label}: T/R (${k.tR}) suggested max (${sTR.val}) se zyada hai — kiln width mein itni tiles fit nahi hongi.`);
+    if(k.tR<=0) add('err',`${label}: T/R 0 ya negative hai.`);
+    const sTL = kilnSuggestTL(k);
+    if(k.tL > sTL.val+0.5) add('err',`${label}: T/L (${k.tL.toFixed(2)}) suggested max (${sTL.val.toFixed(4)}) se zyada hai.`);
+    if(k.tL<=0) add('err',`${label}: T/L 0 ya negative hai.`);
+  });
+
+  if(r.yieldRatio<=0) add('err','Finished/Raw weight ratio 0 ya negative hai.');
+  else if(r.yieldRatio>1) add('caution',`Finished/Raw weight ratio 1 se zyada hai (${r.yieldRatio}) — normally ye 1 se kam hota hai (firing mein kuch weight loss hota hai).`);
+  if(r.sprayHours<=0) add('err','Spray Dryer hrs/day 0 ya negative hai.');
+  else if(r.sprayHours>24) add('err','Spray Dryer hrs/day 24 se zyada nahi ho sakta.');
+
+  [['Press Output', r.Ytot],['Kiln Output', r.AH],['RL Output', r.AO]].forEach(([name,val])=>{
+    if(!isFinite(val) || isNaN(val)) add('err',`${name} calculate nahi ho paaya (invalid number) — upar ke inputs check karo.`);
+  });
+
+  const rm = computeRawMaterialChain(r.AKtotalPerDay);
+  if(rm.ballMillTotal < rm.dustReqtWithMargin) add('caution',`Ball Mill capacity (${rm.ballMillTotal.toFixed(1)} t/d) Dust Requirement + margin (${rm.dustReqtWithMargin.toFixed(1)} t/d) se kam hai — Tab 2 dekho.`);
+  if(rm.sprayTotal < r.AKtotalPerDay) add('caution',`Spray Dryer capacity (${rm.sprayTotal.toFixed(1)} t/d) Dust Requirement (${r.AKtotalPerDay.toFixed(1)} t/d) se kam hai — Tab 2 dekho.`);
+  if(rm.siloBufferDays>0 && rm.siloBufferDays<1) add('caution',`Silo buffer sirf ${rm.siloBufferDays.toFixed(2)} din ka hai — kam hai.`);
+  if(rm.slipBufferDays>0 && rm.slipBufferDays<0.5) add('caution',`Slip Tank buffer sirf ${rm.slipBufferDays.toFixed(2)} din ka hai — kam hai.`);
+
+  return w;
+}
+function renderProjection(r){
+  const daysPerMonth = num('projDaysPerMonth');
+  const downtimeMonth = num('projDowntimeMonth');
+  const extraYearly = num('projExtraYearly');
+  const workingDaysPerMonth = Math.max(0, daysPerMonth - downtimeMonth);
+  const workingDaysPerYear = Math.max(0, 365 - downtimeMonth*12 - extraYearly);
+
+  const dailySqm = r.AO;
+  const monthlySqm = dailySqm * workingDaysPerMonth;
+  const yearlySqm = dailySqm * workingDaysPerYear;
+  const dailyWt = dailySqm * r.N/1000;
+  const monthlyWt = monthlySqm * r.N/1000;
+  const yearlyWt = yearlySqm * r.N/1000;
+
+  document.getElementById('projWorkingDaysNote').textContent =
+    `Working days/month: ${workingDaysPerMonth.toFixed(1)}  ·  Working days/year: ${workingDaysPerYear.toFixed(1)}`;
+  document.getElementById('proj_daily').textContent = Math.round(dailySqm).toLocaleString()+' sqm';
+  document.getElementById('proj_monthly').textContent = Math.round(monthlySqm).toLocaleString()+' sqm';
+  document.getElementById('proj_yearly').textContent = Math.round(yearlySqm).toLocaleString()+' sqm';
+  document.getElementById('proj_monthlyWt').textContent = Math.round(monthlyWt).toLocaleString()+' t';
+  document.getElementById('proj_yearlyWt').textContent = Math.round(yearlyWt).toLocaleString()+' t';
+
+  const kilnFuel=num('engKilnFuel'), fuelCost=num('engFuelCost'), powerKwh=num('engPowerKwh'), powerCost=num('engPowerCost');
+  const engEl = document.getElementById('engResult');
+  if(kilnFuel<=0 && powerKwh<=0){
+    engEl.textContent = 'Values 0 chhodo to ye section ignore ho jaayega.';
+  } else {
+    let parts=[];
+    if(kilnFuel>0){
+      const fuelPerDay = r.AJ*kilnFuel;
+      parts.push(`Kiln fuel: ${fuelPerDay.toFixed(1)} unit/day` + (fuelCost>0?` (₹${Math.round(fuelPerDay*fuelCost).toLocaleString()}/day)`:''));
+    }
+    if(powerKwh>0){
+      const powerPerDay = r.AK*powerKwh;
+      parts.push(`Spray Dryer power: ${powerPerDay.toFixed(1)} kWh/day` + (powerCost>0?` (₹${Math.round(powerPerDay*powerCost).toLocaleString()}/day)`:''));
+    }
+    engEl.innerHTML = parts.join('<br>') + '<br><span style="color:var(--muted);">Rough estimate — actual consumption plant-specific losses/efficiency ke saath vary karega.</span>';
+  }
+}
+
+function renderWarnings(r){
+  const items = collectWarnings(r);
+  const panel = document.getElementById('warnPanel');
+  const list = document.getElementById('warnList');
+  const title = document.getElementById('warnPanelTitle');
+  list.innerHTML='';
+  if(items.length===0){ panel.classList.remove('show'); return; }
+  panel.classList.add('show');
+  const hasErr = items.some(i=>i.level==='err');
+  title.textContent = hasErr ? `🛑 Warnings — action needed (${items.length})` : `⚡ Cautions (${items.length})`;
+  title.classList.toggle('caution-only', !hasErr);
+  items.sort((a,b)=> (a.level==='err'?0:1) - (b.level==='err'?0:1));
+  items.forEach(it=>{
+    const li=document.createElement('li');
+    li.className = it.level==='err' ? 'err' : 'caution';
+    li.innerHTML = `<span class="icon">${it.level==='err'?'🛑':'⚡'}</span><span>${it.msg}</span>`;
+    list.appendChild(li);
+  });
+}
+
+function render(){
+  const r = compute();
+  document.getElementById('tileInfo').innerHTML =
+    `<div><span>Rectified size</span><span>${r.E.toFixed(1)} × ${r.F.toFixed(1)} cm</span></div>
+     <div><span>Green size</span><span>${r.O.toFixed(2)} × ${r.P.toFixed(2)} cm</span></div>
+     <div><span>Area</span><span>${r.K.toFixed(4)} sqm</span></div>
+     <div><span>Fired Wt</span><span>${r.M.toFixed(0)} g</span></div>
+     <div><span>Sp. Wt</span><span>${r.N.toFixed(2)} kg/sqm</span></div>`;
+
+  document.getElementById('out_Ytot').innerHTML = Math.round(r.Ytot).toLocaleString()+'<div class="unit">Total Press Output — all presses combined, sqm/day</div>';
+  document.getElementById('out_Z').innerHTML = r.Zmin.toFixed(1)+'<div class="unit">Total tiles/min (all presses)</div>';
+  document.getElementById('out_AAtot').innerHTML = Math.round(r.AAtot).toLocaleString()+'<div class="unit">Total, sqm/day</div>';
+  document.getElementById('out_AH').innerHTML = Math.round(r.AH).toLocaleString()+'<div class="unit">Total Kiln Output (✓ selected kilns), sqm/day</div>';
+  renderPressOutputs();
+  renderKilnOutputs();
+
+  document.getElementById('dustInfo').innerHTML =
+    `<div><span>Kiln output weight (AJ)</span><span>${r.AJ.toFixed(1)} t/d</span></div>
+     <div><span>Dust Reqt (AK)</span><span>${r.AK.toFixed(1)} t/d</span></div>`;
+  document.getElementById('out_AL').innerHTML = r.AL.toFixed(2)+'<div class="unit">Total Dust Requirement, t/h</div>';
+
+  const stages=[['Press total (all presses)',r.Ytot],['Kiln',r.AH],['RL Output',r.AO]];
+  const minVal = Math.min(...stages.map(s=>s[1]));
+  const flow=document.getElementById('flowrow');
+  flow.innerHTML='';
+  stages.forEach((s,i)=>{
+    if(i>0){ const a=document.createElement('div'); a.className='arrow'; a.textContent='→'; flow.appendChild(a); }
+    const box=document.createElement('div');
+    box.className='flowbox'+(s[1]===minVal?' bottleneck':'');
+    box.innerHTML=`<div class="lbl">${s[0]}</div><div class="val">${Math.round(s[1]).toLocaleString()}</div>`;
+    flow.appendChild(box);
+  });
+
+  bottleneckSuggestion(r);
+  renderSensitivity(r);
+  renderRawMaterialChain(r);
+  renderProjection(r);
+  renderWarnings(r);
+  if(typeof renderSizeMatrixResult==='function') renderSizeMatrixResult();
+  return r;
+}
+
+function renderSensitivity(r){
+  const adj = parseFloat(document.getElementById('sensSlider').value);
+  const C=num('C'), D=num('D');
+  let newAHtotal=0;
+  kilns.forEach(k=>{
+    if(!k.selected) return;
+    const newCyc = k.kilnCyc + adj;
+    newAHtotal += newCyc>0 ? k.tL*k.tR*C*D*60*24/newCyc/10000*(k.kilnUtil/100) : 0;
+  });
+  document.getElementById('sens_curCyc').textContent = 'all selected kilns';
+  document.getElementById('sens_newCyc').textContent = (adj>=0?'+':'')+adj+' min applied to each selected kiln';
+  document.getElementById('sens_curAH').textContent = Math.round(r.AH).toLocaleString();
+  document.getElementById('sens_newAH').textContent = Math.round(newAHtotal).toLocaleString();
+  const delta = newAHtotal-r.AH;
+  const deltaPct = r.AH>0 ? (delta/r.AH*100) : 0;
+  const el = document.getElementById('sens_delta');
+  el.textContent = (delta>=0?'+':'')+Math.round(delta).toLocaleString()+' ('+(deltaPct>=0?'+':'')+deltaPct.toFixed(1)+'%)';
+  el.className = 'val '+(delta>=0?'pos':'neg');
+}
+document.getElementById('sensSlider').addEventListener('input', ()=>renderSensitivity(compute()));
+
+// ---------- Goal Seek ----------
+function computeAHFromKilnArr(karr){
+  const C=num('C'), D=num('D');
+  let tot=0;
+  karr.forEach(k=>{ if(!k.selected) return; tot += k.kilnCyc>0 ? k.tL*k.tR*C*D*60*24/k.kilnCyc/10000*(k.kilnUtil/100) : 0; });
+  return tot;
+}
+function computeYtotFromPressArr(parr){
+  const C=num('C'), D=num('D');
+  let tot=0;
+  parr.forEach(p=>{ const Y = p.workHours*60*p.cyc*p.effCav*C*D/10000; tot += Y*p.qty; });
+  return tot;
+}
+function rectTrimFactor(){
+  const rectAllow=num('rectAllow'), C=num('C'), D=num('D');
+  const rectTotal=rectAllow*2, E=C+rectTotal, F=D+rectTotal;
+  return (E*F)>0 ? (E-rectTotal)*(F-rectTotal)/(E*F) : 0;
+}
+function goalSeekKilnSide(target, vars){
+  const base = JSON.parse(JSON.stringify(kilns));
+  const trim = rectTrimFactor();
+  function applyM(m){
+    const k2 = base.map(k=>({...k}));
+    k2.forEach(k=>{
+      if(!k.selected) return;
+      if(vars.includes('kilnCyc')) k.kilnCyc = k.kilnCyc/m;
+      if(vars.includes('tL')) k.tL = k.tL*m;
+      if(vars.includes('kilnW')){ k.kilnW = k.kilnW*m; k.tR = kilnSuggestTR(k).val; }
+      else if(vars.includes('tR')) k.tR = k.tR*m;
+    });
+    return {AO: computeAHFromKilnArr(k2)*trim, k2};
+  }
+  let lo=advCfg.gsBoundLo, hi=advCfg.gsBoundHi;
+  const increasing = applyM(hi).AO > applyM(lo).AO;
+  for(let i=0;i<60;i++){
+    const mid=(lo+hi)/2, AO=applyM(mid).AO;
+    if(increasing){ if(AO<target) lo=mid; else hi=mid; } else { if(AO>target) lo=mid; else hi=mid; }
+  }
+  const mFinal=(lo+hi)/2, result=applyM(mFinal);
+  const achievable = Math.abs(result.AO-target) < target*0.02+2;
+  return {achievable, m:mFinal, AO:result.AO, k2:result.k2, vars};
+}
+function goalSeekPressCycle(target){
+  const base = JSON.parse(JSON.stringify(presses));
+  function applyM(m){ const p2=base.map(p=>({...p, cyc:p.cyc*m})); return {Ytot: computeYtotFromPressArr(p2), p2}; }
+  let lo=advCfg.gsBoundLo, hi=advCfg.gsBoundHi;
+  for(let i=0;i<60;i++){
+    const mid=(lo+hi)/2, Ytot=applyM(mid).Ytot;
+    if(Ytot<target) lo=mid; else hi=mid;
+  }
+  const mFinal=(lo+hi)/2, result=applyM(mFinal);
+  const achievable = Math.abs(result.Ytot-target) < target*0.02+2;
+  return {achievable, m:mFinal, Ytot:result.Ytot, p2:result.p2};
+}
+let lastGSKiln=null, lastGSPress=null;
+document.getElementById('gsSolveBtn').addEventListener('click', ()=>{
+  const target = num('gsTarget');
+  const selected = [...document.querySelectorAll('.gs-var:checked')].map(cb=>cb.value);
+  const resEl = document.getElementById('gsResult');
+  lastGSKiln=null; lastGSPress=null;
+  if(selected.length===0){ resEl.innerHTML='<div class="note">Kam se kam ek variable select karo.</div>'; return; }
+  if(target<=0){ resEl.innerHTML='<div class="note">Target 0 se zyada hona chahiye.</div>'; return; }
+
+  let html='';
+  const kilnVars = selected.filter(v=>['kilnCyc','tR','tL','kilnW'].includes(v));
+  if(kilnVars.includes('kilnW') && !kilnVars.includes('tR')){
+    html += `<div class="warnbox" style="margin-bottom:8px;">⚠️ Sirf Kiln Width badhane se Kiln Output nahi badhta jab tak T/R bhi na badhe (Width sirf fit-check ke liye hai). Yahan Width badhne par T/R apne aap suggested value tak adjust ho jaayega.</div>`;
+  }
+  if(kilnVars.length>0){
+    const r = goalSeekKilnSide(target, kilnVars);
+    lastGSKiln = r;
+    const pct=(r.m-1)*100;
+    html += `<div style="margin-bottom:10px;"><b>Kiln-side (${kilnVars.join(', ')}) → RL Output:</b><br>`;
+    html += r.achievable
+      ? `✅ Target achievable — ${(pct>=0?'+':'')}${pct.toFixed(1)}% change needed. Result: ${Math.round(r.AO).toLocaleString()} sqm/day.<br>`
+      : `<span style="color:var(--danger);">⚠️ Target practical range (${advCfg.gsBoundLo}×–${advCfg.gsBoundHi}×) ke bahar hai — closest achievable: ${Math.round(r.AO).toLocaleString()} sqm/day.</span><br>`;
+    r.k2.forEach((k,i)=>{
+      if(!k.selected) return;
+      html += `<span style="font-size:11.5px; color:var(--muted);">Kiln ${i+1}: `;
+      if(kilnVars.includes('kilnCyc')) html+=`Cycle → ${k.kilnCyc.toFixed(2)} min &nbsp;`;
+      if(kilnVars.includes('tR') || kilnVars.includes('kilnW')) html+=`T/R → ${k.tR} &nbsp;`;
+      if(kilnVars.includes('tL')) html+=`T/L → ${k.tL.toFixed(4)} &nbsp;`;
+      if(kilnVars.includes('kilnW')) html+=`Kiln Width → ${k.kilnW.toFixed(2)} m &nbsp;`;
+      html += `</span><br>`;
+    });
+    html += `<button type="button" class="btn-ghost btn-tiny" id="gsApplyKilnBtn" style="margin-top:4px;">Apply to Kiln(s) →</button></div>`;
+  }
+  if(selected.includes('pressCyc')){
+    const r = goalSeekPressCycle(target);
+    lastGSPress = r;
+    const pct=(r.m-1)*100;
+    html += `<div><b>Press Cycle → Press Output (Y total):</b><br>`;
+    html += r.achievable
+      ? `✅ Target achievable — ${(pct>=0?'+':'')}${pct.toFixed(1)}% change needed. Result: ${Math.round(r.Ytot).toLocaleString()} sqm/day.<br>`
+      : `<span style="color:var(--danger);">⚠️ Target practical range (${advCfg.gsBoundLo}×–${advCfg.gsBoundHi}×) ke bahar hai — closest achievable: ${Math.round(r.Ytot).toLocaleString()} sqm/day.</span><br>`;
+    r.p2.forEach((p,i)=>{ html += `<span style="font-size:11.5px; color:var(--muted);">Press ${i+1}: Cycle → ${p.cyc.toFixed(2)}/min</span><br>`; });
+    html += `<button type="button" class="btn-ghost btn-tiny" id="gsApplyPressBtn" style="margin-top:4px;">Apply to Press(es) →</button>`;
+    html += `<div class="note" style="margin-top:6px;">Note: is calculator ke model mein RL Output sirf Kiln stage se calculate hota hai — Press Cycle sirf Press Output (Y total) badalta hai, RL Output ko directly affect nahi karta.</div></div>`;
+  }
+  resEl.innerHTML = html;
+  const kbtn = document.getElementById('gsApplyKilnBtn');
+  if(kbtn) kbtn.addEventListener('click', ()=>{ kilns = JSON.parse(JSON.stringify(lastGSKiln.k2)); renderKilnList(); render(); });
+  const pbtn = document.getElementById('gsApplyPressBtn');
+  if(pbtn) pbtn.addEventListener('click', ()=>{ presses = JSON.parse(JSON.stringify(lastGSPress.p2)); renderPressList(); render(); });
+});
+
+// ---------- Size × Machine Matrix ----------
+let sizeMatrix=[];
+function renderSizeMatrixList(){
+  const c=document.getElementById('sizeMatrixList');
+  c.innerHTML='';
+  sizeMatrix.forEach((s,i)=>{
+    const div=document.createElement('div');
+    div.className='machine-item';
+    div.innerHTML=`
+      <div class="machine-item-head"><span class="letter">Size ${i+1}</span><button type="button" class="del" data-sdel="${i}">✕</button></div>
+      <div class="machine-row three">
+        <div><label>Name (optional)</label><input type="text" data-sfield="name" data-i="${i}" value="${s.name}"></div>
+        <div><label>Length (cm)</label><input type="number" data-sfield="C" data-i="${i}" value="${s.C}"></div>
+        <div><label>Width (cm)</label><input type="number" data-sfield="D" data-i="${i}" value="${s.D}"></div>
+      </div>`;
+    c.appendChild(div);
+  });
+  c.querySelectorAll('input[data-sfield]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const i=parseInt(inp.dataset.i), f=inp.dataset.sfield;
+      sizeMatrix[i][f] = f==='name' ? inp.value : (parseFloat(inp.value)||0);
+      renderSizeMatrixResult();
+    });
+  });
+  c.querySelectorAll('[data-sdel]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ sizeMatrix.splice(parseInt(btn.dataset.sdel),1); renderSizeMatrixList(); renderSizeMatrixResult(); });
+  });
+}
+function renderSizeMatrixResult(){
+  const el=document.getElementById('sizeMatrixResult');
+  if(sizeMatrix.length===0){ el.innerHTML='<div class="note">Koi size add nahi ki abhi — "+ Add Size" se shuru karo.</div>'; return; }
+  const rectAllow=num('rectAllow'), shrink=num('shrink'), rectTotal=rectAllow*2;
+  let html='<table class="report-table"><thead><tr><th>Size</th>';
+  presses.forEach((p,i)=>html+=`<th>Press ${i+1} Cavity</th>`);
+  kilns.forEach((k,i)=>html+=`<th>Kiln ${i+1} T/R</th><th>Kiln ${i+1} T/L</th>`);
+  html+='<th>Press O/P (sqm/d)</th><th>Kiln O/P (sqm/d)</th><th>Dust (t/h)</th><th>Est. RL O/P (sqm/d)</th></tr></thead><tbody>';
+  sizeMatrix.forEach((s,si)=>{
+    const E=s.C+rectTotal, F=s.D+rectTotal;
+    const O=E/(100-shrink)*100, P=F/(100-shrink)*100;
+    html+=`<tr><td>${s.name?s.name+' — ':''}${s.C}×${s.D}</td>`;
+    presses.forEach((p,pi)=>{
+      const raw=(p.CCdis-p.IFgap-p.IFgap+p.GapBC)/(P*10+p.GapBC);
+      html+=`<td><input type="number" class="mtx-cav" data-s="${si}" data-p="${pi}" value="${Math.floor(raw)}" style="width:55px;"></td>`;
+    });
+    kilns.forEach((k,ki)=>{
+      const kf=1+k.kilnGap/100;
+      const tR=Math.floor(P>0?k.kilnW*100/(P*kf):0);
+      const AE=k.moduleLen*k.moduleCount;
+      const tL=O>0?AE*100/(O*kf):0;
+      html+=`<td><input type="number" class="mtx-tr" data-s="${si}" data-k="${ki}" value="${tR}" style="width:50px;"></td>`;
+      html+=`<td><input type="number" step="0.01" class="mtx-tl" data-s="${si}" data-k="${ki}" value="${tL.toFixed(2)}" style="width:70px;"></td>`;
+    });
+    html+=`<td class="calc mtx-press" data-s="${si}">–</td><td class="calc mtx-kiln" data-s="${si}">–</td><td class="calc mtx-dust" data-s="${si}">–</td><td class="calc mtx-rl" data-s="${si}">–</td></tr>`;
+  });
+  html+='</tbody></table>';
+  el.innerHTML=html;
+  el.querySelectorAll('.mtx-cav,.mtx-tr,.mtx-tl').forEach(inp=>{
+    inp.addEventListener('input', ()=>recalcMatrixRow(parseInt(inp.dataset.s)));
+  });
+  sizeMatrix.forEach((s,si)=>recalcMatrixRow(si));
+}
+function recalcMatrixRow(si){
+  const el=document.getElementById('sizeMatrixResult');
+  const s=sizeMatrix[si];
+  if(!s) return;
+  const rectAllow=num('rectAllow'), thick=num('thick'), BD=num('BD'), yieldRatio=num('yieldRatio'), sprayHours=num('sprayHours');
+  const rectTotal=rectAllow*2, E=s.C+rectTotal, F=s.D+rectTotal;
+  let pressOutput=0;
+  presses.forEach((p,pi)=>{
+    const inp=el.querySelector(`.mtx-cav[data-s="${si}"][data-p="${pi}"]`);
+    const cav=parseFloat(inp?.value)||0;
+    pressOutput += p.workHours*60*p.cyc*cav*s.C*s.D/10000*p.qty;
+  });
+  let kilnOutput=0;
+  kilns.forEach((k,ki)=>{
+    if(!k.selected) return;
+    const trInp=el.querySelector(`.mtx-tr[data-s="${si}"][data-k="${ki}"]`);
+    const tlInp=el.querySelector(`.mtx-tl[data-s="${si}"][data-k="${ki}"]`);
+    const tR=parseFloat(trInp?.value)||0, tL=parseFloat(tlInp?.value)||0;
+    kilnOutput += k.kilnCyc>0 ? tL*tR*s.C*s.D*60*24/k.kilnCyc/10000*(k.kilnUtil/100) : 0;
+  });
+  const AJ=kilnOutput*BD*thick/100, AK=yieldRatio>0?AJ/yieldRatio:0, AL=sprayHours>0?AK/sprayHours:0;
+  const AO=(E*F)>0 ? kilnOutput*(E-rectTotal)*(F-rectTotal)/(E*F) : 0;
+  el.querySelector(`.mtx-press[data-s="${si}"]`).textContent=Math.round(pressOutput).toLocaleString();
+  el.querySelector(`.mtx-kiln[data-s="${si}"]`).textContent=Math.round(kilnOutput).toLocaleString();
+  el.querySelector(`.mtx-dust[data-s="${si}"]`).textContent=AL.toFixed(2);
+  el.querySelector(`.mtx-rl[data-s="${si}"]`).textContent=Math.round(AO).toLocaleString();
+}
+document.getElementById('addSizeBtn').addEventListener('click', ()=>{
+  sizeMatrix.push({name:'', C:60, D:60});
+  renderSizeMatrixList();
+  renderSizeMatrixResult();
+});
+renderSizeMatrixResult();
+
+// ---------- Raw Material dynamic lists ----------
+let ballMills=[{cap:60,qty:6,charges:2.2}];
+let sprayDryers=[{cap:26,hrs:22},{cap:11,hrs:20}];
+let silos=[{cap:180,qty:10},{cap:100,qty:5}];
+let slipTanks=[{cap:120,qty:6},{cap:120,qty:3}];
+
+function renderMachineList(containerId, arr, fields, onChange){
+  const container=document.getElementById(containerId);
+  container.innerHTML='';
+  arr.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='machine-item';
+    let rowHtml = `<div class="machine-item-head"><span class="letter">${letterName(i)}</span>`;
+    if(arr.length>1) rowHtml += `<button type="button" class="del" data-i="${i}">✕</button>`;
+    rowHtml += `</div><div class="machine-row ${fields.length===3?'three':''}">`;
+    fields.forEach(f=>{
+      rowHtml += `<div><label>${f.label}</label><input type="number" step="${f.step||1}" data-field="${f.key}" data-i="${i}" value="${item[f.key]}"></div>`;
+    });
+    rowHtml += `</div><div class="machine-total" data-total="${i}"></div>`;
+    div.innerHTML = rowHtml;
+    container.appendChild(div);
+  });
+  container.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const i=parseInt(inp.dataset.i), f=inp.dataset.field;
+      arr[i][f] = parseFloat(inp.value)||0;
+      onChange();
+    });
+  });
+  container.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      arr.splice(parseInt(btn.dataset.i),1);
+      renderMachineList(containerId, arr, fields, onChange);
+      onChange();
+    });
+  });
+}
+
+function computeRawMaterialChain(AKtotalPerDay){
+  const millTotals = ballMills.map(m=>m.cap*m.qty*m.charges);
+  const ballMillTotal = millTotals.reduce((a,b)=>a+b,0);
+  const millMargin = num('millMargin');
+  const dustReqtWithMargin = AKtotalPerDay*(1+millMargin/100);
+
+  const dryerTotals = sprayDryers.map(d=>d.cap*d.hrs);
+  const sprayTotal = dryerTotals.reduce((a,b)=>a+b,0);
+
+  const siloTotals = silos.map(s=>s.cap*s.qty);
+  const siloTotal = siloTotals.reduce((a,b)=>a+b,0);
+  const siloBufferDays = AKtotalPerDay>0 ? siloTotal/AKtotalPerDay : 0;
+
+  const tankTotals = slipTanks.map(t=>t.cap*t.qty);
+  const slipTotal = tankTotals.reduce((a,b)=>a+b,0);
+  const slipBufferDays = sprayTotal>0 ? slipTotal/sprayTotal : 0;
+
+  return {millTotals,ballMillTotal,dustReqtWithMargin,millMargin,dryerTotals,sprayTotal,siloTotals,siloTotal,siloBufferDays,tankTotals,slipTotal,slipBufferDays};
+}
+
+function renderRawMaterialChain(r){
+  const rm = computeRawMaterialChain(r.AKtotalPerDay);
+
+  document.querySelectorAll('#ballMillList [data-total]').forEach((el,i)=>{ el.textContent = rm.millTotals[i].toFixed(1)+' t/d'; });
+  document.getElementById('millInfo').innerHTML =
+    `<div><span>Ball Mill TOTAL (all units)</span><span>${rm.ballMillTotal.toFixed(1)} t/d</span></div>
+     <div><span>Dust Reqt + ${rm.millMargin}% margin</span><span>${rm.dustReqtWithMargin.toFixed(1)} t/d</span></div>`;
+  document.getElementById('millStatus').innerHTML =
+    `<span class="statusbadge ${rm.ballMillTotal>=rm.dustReqtWithMargin?'ok':'bad'}">${rm.ballMillTotal>=rm.dustReqtWithMargin?'✓ Sufficient':'✗ Insufficient'}</span>`;
+
+  document.querySelectorAll('#dryerList [data-total]').forEach((el,i)=>{ el.textContent = rm.dryerTotals[i].toFixed(1)+' t/d'; });
+  document.getElementById('dryerInfo').innerHTML =
+    `<div><span>Spray Dryer TOTAL</span><span>${rm.sprayTotal.toFixed(1)} t/d</span></div>
+     <div><span>Dust Reqt (no margin)</span><span>${r.AKtotalPerDay.toFixed(1)} t/d</span></div>`;
+  document.getElementById('dryerStatus').innerHTML =
+    `<span class="statusbadge ${rm.sprayTotal>=r.AKtotalPerDay?'ok':'bad'}">${rm.sprayTotal>=r.AKtotalPerDay?'✓ Sufficient':'✗ Insufficient'}</span>`;
+
+  document.querySelectorAll('#siloList [data-total]').forEach((el,i)=>{ el.textContent = rm.siloTotals[i].toFixed(0)+' t'; });
+  document.getElementById('siloInfo').innerHTML =
+    `<div><span>Silo TOTAL capacity</span><span>${rm.siloTotal.toFixed(0)} t</span></div>
+     <div><span>Buffer (at Dust Reqt)</span><span>${rm.siloBufferDays.toFixed(1)} days</span></div>`;
+
+  document.querySelectorAll('#tankList [data-total]').forEach((el,i)=>{ el.textContent = rm.tankTotals[i].toFixed(0)+' t'; });
+  document.getElementById('tankInfo').innerHTML =
+    `<div><span>Slip Tank TOTAL capacity</span><span>${rm.slipTotal.toFixed(0)} t</span></div>
+     <div><span>Buffer (at Spray Dryer rate)</span><span>${rm.slipBufferDays.toFixed(1)} days</span></div>`;
+}
+
+function refreshAllMachineLists(){
+  renderMachineList('ballMillList', ballMills, [{key:'cap',label:'Cap (t/charge)'},{key:'qty',label:'Qty'},{key:'charges',label:'Charges/day',step:0.1}], ()=>render());
+  renderMachineList('dryerList', sprayDryers, [{key:'cap',label:'Cap (t/hr)'},{key:'hrs',label:'Opr hrs/day'}], ()=>render());
+  renderMachineList('siloList', silos, [{key:'cap',label:'Cap (t/unit)'},{key:'qty',label:'Qty'}], ()=>render());
+  renderMachineList('tankList', slipTanks, [{key:'cap',label:'Cap (t/unit)'},{key:'qty',label:'Qty'}], ()=>render());
+}
+document.getElementById('addMillBtn').addEventListener('click', ()=>{ ballMills.push({cap:0,qty:0,charges:0}); refreshAllMachineLists(); render(); });
+document.getElementById('addDryerBtn').addEventListener('click', ()=>{ sprayDryers.push({cap:0,hrs:0}); refreshAllMachineLists(); render(); });
+document.getElementById('addSiloBtn').addEventListener('click', ()=>{ silos.push({cap:0,qty:0}); refreshAllMachineLists(); render(); });
+document.getElementById('addTankBtn').addEventListener('click', ()=>{ slipTanks.push({cap:0,qty:0}); refreshAllMachineLists(); render(); });
+document.getElementById('millMargin').addEventListener('input', ()=>render());
+
+// ---------- Input consistency scan (#13) ----------
+function runConsistencyScan(){
+  const r = compute();
+  const flags=[];
+  const check=(cond,msg)=>{ if(cond) flags.push(msg); };
+  check(r.thick<advCfg.thickMin || r.thick>advCfg.thickMax, `Thickness ${r.thick} cm — typical GVT range ${advCfg.thickMin}–${advCfg.thickMax} cm hai, check karo galti se extra 0 to nahi laga diya.`);
+  check(r.BD<advCfg.bdMin || r.BD>advCfg.bdMax, `Bulk Density ${r.BD} — typical range ${advCfg.bdMin}–${advCfg.bdMax} g/cc hai.`);
+  check(r.shrink<advCfg.shrinkMin || r.shrink>advCfg.shrinkMax, `Shrinkage ${r.shrink}% — typical range ${advCfg.shrinkMin}–${advCfg.shrinkMax}% hai.`);
+  check(r.rectAllow<advCfg.rectMin || r.rectAllow>advCfg.rectMax, `Rectification allowance ${r.rectAllow} cm/side — typical range ${advCfg.rectMin}–${advCfg.rectMax} cm hai.`);
+  check(r.glazeEff<advCfg.glazeEffMin || r.glazeEff>advCfg.glazeEffMax, `Glaze Line Efficiency ${r.glazeEff}% — typical range ${advCfg.glazeEffMin}–${advCfg.glazeEffMax}% hai.`);
+  check(r.yieldRatio<advCfg.yieldMin || r.yieldRatio>advCfg.yieldMax, `Finished/Raw ratio ${r.yieldRatio} — typical range ${advCfg.yieldMin}–${advCfg.yieldMax} hai.`);
+  presses.forEach((p,i)=>{
+    check(p.cyc<advCfg.pressCycMin || p.cyc>advCfg.pressCycMax, `Press ${i+1}: Cycle ${p.cyc}/min — typical range ${advCfg.pressCycMin}–${advCfg.pressCycMax}/min hai.`);
+    check(p.pressEff<advCfg.pressEffMin || p.pressEff>advCfg.pressEffMax, `Press ${i+1}: Efficiency ${p.pressEff}% — typical range ${advCfg.pressEffMin}–${advCfg.pressEffMax}% hai.`);
+  });
+  kilns.forEach((k,i)=>{
+    check(k.kilnCyc<advCfg.kilnCycMin || k.kilnCyc>advCfg.kilnCycMax, `Kiln ${i+1}: Cycle ${k.kilnCyc} min — typical range ${advCfg.kilnCycMin}–${advCfg.kilnCycMax} min hai.`);
+    check(k.kilnUtil<advCfg.kilnUtilMin, `Kiln ${i+1}: Utilization ${k.kilnUtil}% — ${advCfg.kilnUtilMin}% se kam unusual hai, check karo.`);
+  });
+  const el = document.getElementById('scanResult');
+  if(flags.length===0){ el.innerHTML = '<div class="note" style="color:var(--good);">✅ Sab values typical industry range ke andar hain.</div>'; return; }
+  el.innerHTML = '<div class="warnlist" style="border-radius:8px; overflow:hidden;">' +
+    flags.map(f=>`<li class="caution" style="list-style:none;"><span class="icon">⚡</span><span>${f}</span></li>`).join('') + '</div>';
+}
+document.getElementById('scanBtn').addEventListener('click', runConsistencyScan);
+
+// ---------- Last-changed tracker (#14) ----------
+let changeLog=[];
+function fieldLabelFor(el){
+  const lbl = el.closest('.field')?.querySelector('label')?.textContent
+    || el.closest('div')?.querySelector('label')?.textContent;
+  if(lbl) return lbl.replace('confirm','').trim();
+  return el.dataset.field || el.dataset.kfield || el.id || 'field';
+}
+document.addEventListener('input', (e)=>{
+  const el=e.target;
+  if(el.tagName!=='INPUT' || el.type==='checkbox' || el.type==='file') return;
+  if(['scenarioName','scenarioNote','gsTarget','catalogSearch','ac_make','ac_model','ac_product','ac_size','ac_cavity','ac_thickness','ac_cycle'].includes(el.id)) return;
+  const label = fieldLabelFor(el);
+  changeLog = changeLog.filter(c=>c.label!==label);
+  changeLog.unshift({label, value: el.value, time: new Date()});
+  changeLog = changeLog.slice(0,5);
+  renderChangeLog();
+});
+function renderChangeLog(){
+  const el = document.getElementById('changeLogBox');
+  if(!el) return;
+  if(changeLog.length===0){ el.innerHTML=''; return; }
+  el.innerHTML = '<div style="font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-bottom:4px;">🕐 Last 5 changes</div>' +
+    changeLog.map(c=>`<div><span>${c.label}</span><span>${c.value} <span style="color:var(--muted); font-size:9.5px;">(${c.time.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})})</span></span></div>`).join('');
+}
+
+// ---------- Wiring for Tab 1 fields ----------
+['C','D','rectAllow','shrink'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{ updateAllCavityNotes(); updateAllKilnDerived(); render(); });
+});
+['thick','BD','glazeEff','yieldRatio','sprayHours','projDaysPerMonth','projDowntimeMonth','projExtraYearly','engKilnFuel','engFuelCost','engPowerKwh','engPowerCost']
+  .forEach(id=>document.getElementById(id).addEventListener('input', render));
+
+// ---------- History table ----------
+let rows=[];
+let editingIndex=-1;
+let chart=null;
+
+function renderChart(){
+  const ctx = document.getElementById('comparisonChart');
+  const labels = rows.map(r=>r.C+'×'+r.D);
+  const data = rows.map(r=>Math.round(r.AO));
+  if(chart){ chart.destroy(); }
+  if(rows.length===0){ return; }
+  chart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'RL Output (sqm/day)', data, backgroundColor:'#b45524' }] },
+    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} } });
+}
+
+function renderTable(){
+  const tbody=document.getElementById('tbody');
+  const empty=document.getElementById('emptyNote');
+  tbody.innerHTML='';
+  if(rows.length===0){ empty.style.display='block'; renderChart(); return; }
+  empty.style.display='none';
+  const minRL = Math.min(...rows.map(r=>r.AO));
+  rows.forEach((r,idx)=>{
+    const tr=document.createElement('tr');
+    if(r.AO===minRL) tr.className='top';
+    tr.innerHTML=`
+      <td><input type="checkbox" class="cmp-check" data-i="${idx}"></td>
+      <td title="${(r.scenarioNote||'').replace(/"/g,'&quot;')}">${r.scenarioName || (r.C+'×'+r.D)}${r.scenarioNote?' 📝':''}<br><span style="font-size:9.5px; color:var(--muted); font-weight:400;">${r.C}×${r.D}</span></td>
+      <td>${r.pressItemsSnapshot.length} types / ${r.pressItemsSnapshot.reduce((a,p)=>a+p.qty,0)} total</td><td class="calc">${Math.round(r.Ytot).toLocaleString()}</td>
+      <td class="glaze-col">${r.glazeEff}</td><td class="calc glaze-col">${Math.round(r.AAtot).toLocaleString()}</td>
+      <td>${r.kilnItemsSnapshot.filter(k=>k.selected).length}/${r.kilnItemsSnapshot.length}</td><td class="calc">${Math.round(r.AH).toLocaleString()}</td>
+      <td class="calc">${r.AL.toFixed(2)}</td>
+      <td class="calc">${Math.round(r.AO).toLocaleString()}</td>
+      <td><button class="btn-ghost btn-tiny edit-row" data-i="${idx}">Edit</button> <button class="del" data-i="${idx}" aria-label="Delete row">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('.cmp-check').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const checked = tbody.querySelectorAll('.cmp-check:checked');
+      if(checked.length>4){ cb.checked=false; alert('Zyada se zyada 4 scenarios compare kar sakte ho.'); }
+    });
+  });
+  tbody.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ rows.splice(parseInt(btn.dataset.i),1); renderTable(); });
+  });
+  tbody.querySelectorAll('.edit-row').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i=parseInt(btn.dataset.i);
+      loadIntoForm(rows[i]);
+      editingIndex=i;
+      document.getElementById('addBtn').textContent='✓ Update this entry in History';
+      document.querySelector('[data-tab="production"]').click();
+    });
+  });
+  renderChart();
+}
+
+document.getElementById('compareBtn').addEventListener('click', ()=>{
+  const checked = [...document.querySelectorAll('.cmp-check:checked')].map(cb=>parseInt(cb.dataset.i));
+  const card = document.getElementById('compareCard');
+  if(checked.length<2){ alert('Compare karne ke liye kam se kam 2 scenarios select karo (checkbox History table mein).'); return; }
+  const scenarios = checked.map(i=>rows[i]);
+  const metrics = [
+    ['Size (cm)', r=>r.C+'×'+r.D, false],
+    ['Press Output', r=>Math.round(r.Ytot), true],
+    ['Kiln Output', r=>Math.round(r.AH), true],
+    ['Dust Reqt (t/h)', r=>+r.AL.toFixed(2), true],
+    ['RL Output (sqm/d)', r=>Math.round(r.AO), true],
+    ['Ball Mill Capacity (t/d)', r=>+computeRawMaterialChain(r.AKtotalPerDay).ballMillTotal.toFixed(1), true],
+    ['Spray Dryer Capacity (t/d)', r=>+computeRawMaterialChain(r.AKtotalPerDay).sprayTotal.toFixed(1), true],
+    ['Silo Buffer (days)', r=>+computeRawMaterialChain(r.AKtotalPerDay).siloBufferDays.toFixed(1), true],
+    ['Slip Tank Buffer (days)', r=>+computeRawMaterialChain(r.AKtotalPerDay).slipBufferDays.toFixed(1), true]
+  ];
+  let html = '<div style="font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); font-weight:700; margin-bottom:10px;">⚖️ Scenario Comparison</div>';
+  html += '<div style="overflow-x:auto;"><table class="compare-table"><thead><tr><th>Metric</th>';
+  scenarios.forEach((s,i)=>{ html += `<th>Scenario ${i+1}<br><span style="font-weight:400;">(${s.C}×${s.D})</span></th>`; });
+  html += '</tr></thead><tbody>';
+  metrics.forEach(([label,fn,isNum])=>{
+    html += `<tr><td style="font-family:var(--sans); font-weight:600;">${label}</td>`;
+    const baseVal = fn(scenarios[0]);
+    scenarios.forEach((s,i)=>{
+      const val = fn(s);
+      if(!isNum || i===0){ html += `<td>${val.toLocaleString?val.toLocaleString():val}</td>`; }
+      else {
+        const delta = val-baseVal;
+        const pct = baseVal!==0 ? (delta/baseVal*100) : 0;
+        const sign = delta>=0?'+':'';
+        const color = delta>=0 ? 'var(--good)' : 'var(--danger)';
+        html += `<td>${val.toLocaleString()}<br><span style="font-size:10.5px; color:${color};">${sign}${delta.toLocaleString()} (${sign}${pct.toFixed(1)}%)</span></td>`;
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div><div class="note" style="margin-top:6px;">Δ (delta) Scenario 1 ke against dikhaya gaya hai.</div>';
+  card.innerHTML = html;
+  card.style.display='block';
+  card.scrollIntoView({behavior:'smooth', block:'nearest'});
+});
+
+function loadIntoForm(r){
+  const map={C:r.C,D:r.D,rectAllow:r.rectAllow,thick:r.thick,BD:r.BD,shrink:r.shrink,
+    glazeEff:r.glazeEff, yieldRatio:r.yieldRatio,sprayHours:r.sprayHours};
+  Object.keys(map).forEach(id=>{ if(document.getElementById(id)) document.getElementById(id).value=map[id]; });
+  presses = JSON.parse(JSON.stringify(r.pressItemsSnapshot));
+  kilns = JSON.parse(JSON.stringify(r.kilnItemsSnapshot));
+  document.getElementById('scenarioName').value = r.scenarioName||'';
+  document.getElementById('scenarioNote').value = r.scenarioNote||'';
+  renderPressList();
+  renderKilnList();
+  render();
+}
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  const r = compute();
+  r.scenarioName = document.getElementById('scenarioName').value.trim();
+  r.scenarioNote = document.getElementById('scenarioNote').value.trim();
+  if(editingIndex>=0){ rows[editingIndex]=r; editingIndex=-1; document.getElementById('addBtn').textContent='+ Save current setup to History'; }
+  else{ rows.push(r); }
+  document.getElementById('scenarioName').value='';
+  document.getElementById('scenarioNote').value='';
+  renderTable();
+  document.querySelector('[data-tab="history"]').click();
+});
+
+const defaultValues={C:120,D:60,rectAllow:0.3,thick:0.9,BD:1.85,shrink:9,glazeEff:97,
+  yieldRatio:0.83,sprayHours:21};
+const defaultPresses=[{CCdis:2450, IFgap:100, GapBC:90, effCav:2, pressCap:7890, pressEff:90, cyc:8, workHours:21.6, qty:1}];
+const defaultKilns=[{moduleLen:2.1, moduleCount:150, kilnW:2.95, kilnCyc:35, kilnGap:0.45, kilnUtil:99, tR:4, tL:236.6218, selected:true}];
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  Object.keys(defaultValues).forEach(id=>document.getElementById(id).value=defaultValues[id]);
+  presses = JSON.parse(JSON.stringify(defaultPresses));
+  kilns = JSON.parse(JSON.stringify(defaultKilns));
+  renderPressList();
+  renderKilnList();
+  document.getElementById('sensSlider').value=0;
+  editingIndex=-1;
+  document.getElementById('addBtn').textContent='+ Save current setup to History';
+  render();
+});
+
+document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+
+// ---------- Summary Report (PDF via print) ----------
+function buildReportPage(r){
+  const warnings = collectWarnings(r);
+  const daysPerMonth=num('projDaysPerMonth'), downtimeMonth=num('projDowntimeMonth'), extraYearly=num('projExtraYearly');
+  const wdM = Math.max(0, daysPerMonth-downtimeMonth), wdY = Math.max(0, 365-downtimeMonth*12-extraYearly);
+  const proj = { monthlySqm: r.AO*wdM, yearlySqm: r.AO*wdY, monthlyWt: r.AO*wdM*r.N/1000, yearlyWt: r.AO*wdY*r.N/1000 };
+  const rm = computeRawMaterialChain(r.AKtotalPerDay);
+  const dateStr = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+  const titleLine = r.scenarioName ? `${r.scenarioName} — ${r.C}×${r.D} cm` : `Size ${r.C}×${r.D} cm`;
+
+  let html = `
+    <div class="report-header">
+      <h1>Tile Production Capacity — Summary Report</h1>
+      <div class="sub">${titleLine}, ${r.thick} cm thick · Generated ${dateStr}</div>
+    </div>
+    <div class="report-hero">
+      <div class="num">${Math.round(r.AO).toLocaleString()} sqm/day</div>
+      <div class="lbl">Final RL (Saleable) Output</div>
+    </div>
+    <div class="report-grid">
+      <div class="report-box">
+        <h3>Tile Specification</h3>
+        <div class="report-row"><span>Basic Size</span><span>${r.C} × ${r.D} cm</span></div>
+        <div class="report-row"><span>Green Size</span><span>${r.O.toFixed(2)} × ${r.P.toFixed(2)} cm</span></div>
+        <div class="report-row"><span>Thickness</span><span>${r.thick} cm</span></div>
+        <div class="report-row"><span>Bulk Density</span><span>${r.BD} g/cc</span></div>
+        <div class="report-row"><span>Shrinkage</span><span>${r.shrink}%</span></div>
+        <div class="report-row"><span>Specific Weight</span><span>${r.N.toFixed(2)} kg/sqm</span></div>
+      </div>
+      <div class="report-box">
+        <h3>Production Chain Summary</h3>
+        <div class="report-row"><span>Press Output (Y total)</span><span>${Math.round(r.Ytot).toLocaleString()} sqm/d</span></div>
+        <div class="report-row"><span>Kiln Output</span><span>${Math.round(r.AH).toLocaleString()} sqm/d</span></div>
+        <div class="report-row"><span>Dust Requirement</span><span>${r.AL.toFixed(2)} t/h</span></div>
+        <div class="report-row"><span>RL Final Output</span><span>${Math.round(r.AO).toLocaleString()} sqm/d</span></div>
+      </div>
+    </div>
+    <div class="report-box" style="margin-bottom:14px;">
+      <h3>🎯 Bottleneck & Suggestion</h3>
+      <div style="font-size:11.5px;">${getBottleneckText(r)}</div>
+    </div>
+    <div class="report-box" style="margin-bottom:14px;">
+      <h3>Press Detail (${r.pressItemsSnapshot.length} type${r.pressItemsSnapshot.length>1?'s':''})</h3>
+      <table class="report-table"><thead><tr><th>#</th><th>Eff. Cavity</th><th>Cycle/min</th><th>Work Hrs/day</th><th>Qty</th></tr></thead><tbody>
+      ${r.pressItemsSnapshot.map((p,i)=>`<tr><td>Press ${i+1}</td><td>${p.effCav}</td><td>${p.cyc}</td><td>${p.workHours}</td><td>${p.qty}</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+    <div class="report-box" style="margin-bottom:14px;">
+      <h3>Kiln Detail (${r.kilnItemsSnapshot.filter(k=>k.selected).length}/${r.kilnItemsSnapshot.length} selected)</h3>
+      <table class="report-table"><thead><tr><th>#</th><th>Included</th><th>Cycle (min)</th><th>T/R</th><th>T/L</th><th>Utilization%</th></tr></thead><tbody>
+      ${r.kilnItemsSnapshot.map((k,i)=>`<tr><td>Kiln ${i+1}</td><td>${k.selected?'Yes':'No'}</td><td>${k.kilnCyc}</td><td>${k.tR}</td><td>${k.tL}</td><td>${k.kilnUtil}%</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+    <div class="report-box" style="margin-bottom:14px;">
+      <h3>Monthly / Yearly Projection</h3>
+      <div class="report-row"><span>Monthly Output</span><span>${Math.round(proj.monthlySqm).toLocaleString()} sqm (${Math.round(proj.monthlyWt).toLocaleString()} t)</span></div>
+      <div class="report-row"><span>Yearly Output</span><span>${Math.round(proj.yearlySqm).toLocaleString()} sqm (${Math.round(proj.yearlyWt).toLocaleString()} t)</span></div>
+    </div>
+    <div class="report-box" style="margin-bottom:14px;">
+      <h3>Raw Material Supply Chain</h3>
+      <div class="report-row"><span>Ball Mill Total Capacity</span><span>${rm.ballMillTotal.toFixed(1)} t/d</span></div>
+      <div class="report-row"><span>Dust Reqt + margin</span><span>${rm.dustReqtWithMargin.toFixed(1)} t/d</span></div>
+      <div class="report-row"><span>Spray Dryer Total Capacity</span><span>${rm.sprayTotal.toFixed(1)} t/d</span></div>
+      <div class="report-row"><span>Silo Buffer</span><span>${rm.siloBufferDays.toFixed(1)} days</span></div>
+      <div class="report-row"><span>Slip Tank Buffer</span><span>${rm.slipBufferDays.toFixed(1)} days</span></div>
+    </div>`;
+
+  if(warnings.length>0){
+    html += `<div class="report-warn"><b>${warnings.filter(w=>w.level==='err').length} warning(s), ${warnings.filter(w=>w.level==='caution').length} caution(s):</b><br>` +
+      warnings.slice(0,8).map(w=>`${w.level==='err'?'🛑':'⚡'} ${w.msg}`).join('<br>') +
+      (warnings.length>8 ? `<br>…and ${warnings.length-8} more (see calculator).` : '') + `</div>`;
+  }
+  return html;
+}
+function generateReport(){
+  const checked = [...document.querySelectorAll('.cmp-check:checked')].map(cb=>parseInt(cb.dataset.i));
+  const scenarioList = checked.length>0 ? checked.map(i=>rows[i]) : [compute()];
+  document.getElementById('reportView').innerHTML =
+    scenarioList.map(r=>`<div class="report-page">${buildReportPage(r)}</div>`).join('');
+}
+document.getElementById('reportBtn').addEventListener('click', ()=>{
+  generateReport();
+  document.body.classList.add('report-mode');
+  window.print();
+});
+window.addEventListener('afterprint', ()=>{ document.body.classList.remove('report-mode'); });
+
+document.getElementById('csvBtn').addEventListener('click', ()=>{
+  if(rows.length===0){ alert('History is empty — save at least one setup first.'); return; }
+  const headers=['C','D','rectAllow','thick','BD','shrink','glazeEff','yieldRatio','sprayHours'];
+  const csvRows=[headers.join(',')+',pressesJSON,kilnsJSON'];
+  rows.forEach(r=>{
+    const base = headers.map(h=>r[h]).join(',');
+    const pj = '"'+JSON.stringify(r.pressItemsSnapshot).replace(/"/g,'""')+'"';
+    const kj = '"'+JSON.stringify(r.kilnItemsSnapshot).replace(/"/g,'""')+'"';
+    csvRows.push(base+','+pj+','+kj);
+  });
+  const blob = new Blob([csvRows.join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='tile_capacity_history.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+function parseCSVLine(line){
+  const out=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(inQ){
+      if(c==='"'){ if(line[i+1]==='"'){ cur+='"'; i++; } else { inQ=false; } }
+      else cur+=c;
+    } else {
+      if(c==='"') inQ=true;
+      else if(c===','){ out.push(cur); cur=''; }
+      else cur+=c;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+document.getElementById('csvImport').addEventListener('change', (e)=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload = (ev)=>{
+    const text=ev.target.result;
+    const lines=text.trim().split('\n');
+    const headers=parseCSVLine(lines[0]);
+    for(let i=1;i<lines.length;i++){
+      const vals=parseCSVLine(lines[i]);
+      const obj={};
+      headers.forEach((h,j)=>{ obj[h]=vals[j]; });
+      Object.keys(obj).forEach(id=>{
+        if(id==='pressesJSON' || id==='kilnsJSON') return;
+        if(document.getElementById(id)) document.getElementById(id).value=parseFloat(obj[id]);
+      });
+      if(obj.pressesJSON){ try{ presses = JSON.parse(obj.pressesJSON); }catch(e){} }
+      if(obj.kilnsJSON){ try{ kilns = JSON.parse(obj.kilnsJSON); }catch(e){} }
+      renderPressList();
+      renderKilnList();
+      rows.push(compute());
+    }
+    renderTable();
+    document.querySelector('[data-tab="history"]').click();
+  };
+  reader.readAsText(file);
+  e.target.value='';
+});
+
+// ---------- Full session save/load (#1) ----------
+document.getElementById('sessionSaveBtn').addEventListener('click', ()=>{
+  const formIds=['C','D','rectAllow','thick','BD','shrink','glazeEff','yieldRatio','sprayHours',
+    'projDaysPerMonth','projDowntimeMonth','projExtraYearly','engKilnFuel','engFuelCost','engPowerKwh','engPowerCost','sensSlider'];
+  const formValues={};
+  formIds.forEach(id=>{ const el=document.getElementById(id); if(el) formValues[id]=el.value; });
+  const session = { version:1, savedAt:new Date().toISOString(), formValues, presses, kilns, rows,
+    customCatalog: pressCatalog.filter(c=>c.custom) };
+  const blob = new Blob([JSON.stringify(session,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='tile_calculator_session.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('sessionLoad').addEventListener('change', (e)=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    try{
+      const session = JSON.parse(ev.target.result);
+      if(session.formValues) Object.keys(session.formValues).forEach(id=>{ const el=document.getElementById(id); if(el) el.value=session.formValues[id]; });
+      if(session.presses) presses = session.presses;
+      if(session.kilns) kilns = session.kilns;
+      if(session.rows) rows = session.rows;
+      if(session.customCatalog) session.customCatalog.forEach(c=>{
+        if(!pressCatalog.some(x=>x.custom && x.model===c.model && x.make===c.make)) pressCatalog.push(c);
+      });
+      renderPressList();
+      renderKilnList();
+      renderTable();
+      render();
+      alert('Session load ho gaya — Tab 1 aur History dono restore ho gaye.');
+    }catch(err){ alert('Invalid session file: '+err.message); }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById('xlsxBtn').addEventListener('click', ()=>{
+  if(rows.length===0){ alert('History is empty — save at least one setup first.'); return; }
+  const rm = computeRawMaterialChain(rows[rows.length-1].AKtotalPerDay);
+  const wb = XLSX.utils.book_new();
+
+  const mainData = rows.map((r,idx)=>({
+    'Entry #': idx+1, 'Size (LxW cm)': r.C+'x'+r.D, 'Rect Allow/side': r.rectAllow, 'Thickness': r.thick, 'BD': r.BD, 'Shrinkage%': r.shrink,
+    '# Press Types': r.pressItemsSnapshot.length, 'Total Press Qty': r.pressItemsSnapshot.reduce((a,p)=>a+p.qty,0), 'Y total (all presses) sqm/d': Math.round(r.Ytot),
+    'Glaze Eff%': r.glazeEff, 'AA total sqm/d': Math.round(r.AAtot),
+    '# Kilns (sel/total)': r.kilnItemsSnapshot.filter(k=>k.selected).length+'/'+r.kilnItemsSnapshot.length,
+    'AH Kiln Output (selected) sqm/d': Math.round(r.AH),
+    'Yield Ratio': r.yieldRatio, 'Spray Hrs/day': r.sprayHours,
+    'AJ Kiln Wt t/d': r.AJ.toFixed(1), 'AK Dust Reqt t/d': r.AK.toFixed(1), 'AL Dust t/h': r.AL.toFixed(2),
+    'RL Final Output sqm/d': Math.round(r.AO)
+  }));
+  const ws1 = XLSX.utils.json_to_sheet(mainData);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Production Calculation');
+
+  const pressDetail = [];
+  rows.forEach((r,idx)=>{
+    r.pressItemsSnapshot.forEach((p,pi)=>{
+      const {O,P} = (function(){ const rectTotal=r.rectAllow*2; const E=r.C+rectTotal, F=r.D+rectTotal; return {O:E/(100-r.shrink)*100, P:F/(100-r.shrink)*100}; })();
+      const W = (O*P*p.effCav)>0 ? p.pressCap*1000/(O*P*p.effCav)*(p.pressEff/100) : 0;
+      const Y = p.workHours*60*p.cyc*p.effCav*r.C*r.D/10000;
+      pressDetail.push({
+        'Entry #': idx+1, 'Size': r.C+'x'+r.D, 'Press': 'Press '+(pi+1),
+        'CC Dist mm': p.CCdis, 'IF Gap mm': p.IFgap, 'GapBC mm': p.GapBC, 'Eff Cavity': p.effCav,
+        'Press Cap tons': p.pressCap, 'Press Eff%': p.pressEff, 'Cycle/min': p.cyc, 'Work Hrs/day': p.workHours, 'Quantity': p.qty,
+        'Sp Pressure bar': W.toFixed(1), 'Output per unit sqm/d': Math.round(Y), 'Output total sqm/d': Math.round(Y*p.qty)
+      });
+    });
+  });
+  const ws1b = XLSX.utils.json_to_sheet(pressDetail);
+  XLSX.utils.book_append_sheet(wb, ws1b, 'Press Detail');
+
+  const kilnDetail = [];
+  rows.forEach((r,idx)=>{
+    const rectTotal=r.rectAllow*2, E=r.C+rectTotal, F=r.D+rectTotal;
+    const P = F/(100-r.shrink)*100;
+    r.kilnItemsSnapshot.forEach((k,ki)=>{
+      const AE = k.moduleLen*k.moduleCount;
+      const kf = 1+k.kilnGap/100;
+      const AH = k.kilnCyc>0 ? k.tL*k.tR*r.C*r.D*60*24/k.kilnCyc/10000*(k.kilnUtil/100) : 0;
+      const AI = k.kilnW>0 ? k.tR*P*kf/k.kilnW : 0;
+      kilnDetail.push({
+        'Entry #': idx+1, 'Size': r.C+'x'+r.D, 'Kiln': 'Kiln '+(ki+1), 'Included in total': k.selected?'Yes':'No',
+        'Module Len m': k.moduleLen, 'Module Count': k.moduleCount, 'Kiln Length m': AE.toFixed(1), 'Kiln Width m': k.kilnW,
+        'Kiln Cycle min': k.kilnCyc, 'Row spacing %': k.kilnGap, 'Kiln Util%': k.kilnUtil, 'T/R': k.tR, 'T/L': k.tL,
+        'Width Util%': AI.toFixed(1), 'AH Output sqm/d': Math.round(AH)
+      });
+    });
+  });
+  const ws1c = XLSX.utils.json_to_sheet(kilnDetail);
+  XLSX.utils.book_append_sheet(wb, ws1c, 'Kiln Detail');
+
+  const rmData = [
+    {Section:'Ball Mills', Detail:'Total capacity', Value:rm.ballMillTotal.toFixed(1)+' t/d'},
+    {Section:'Ball Mills', Detail:'Dust Reqt + margin', Value:rm.dustReqtWithMargin.toFixed(1)+' t/d'},
+    {Section:'Spray Dryers', Detail:'Total output', Value:rm.sprayTotal.toFixed(1)+' t/d'},
+    {Section:'Silos', Detail:'Total capacity', Value:rm.siloTotal.toFixed(0)+' t'},
+    {Section:'Silos', Detail:'Buffer days', Value:rm.siloBufferDays.toFixed(1)+' days'},
+    {Section:'Slip Tanks', Detail:'Total capacity', Value:rm.slipTotal.toFixed(0)+' t'},
+    {Section:'Slip Tanks', Detail:'Buffer days', Value:rm.slipBufferDays.toFixed(1)+' days'}
+  ];
+  const ws2 = XLSX.utils.json_to_sheet(rmData);
+  XLSX.utils.book_append_sheet(wb, ws2, 'Raw Material Chain');
+
+  XLSX.writeFile(wb, 'tile_capacity_full_calculation.xlsx');
+});
+
+const presets = [
+  {name:'GVT 120×60 (default)', values:defaultValues, presses:defaultPresses, kilns:defaultKilns},
+  {name:'GVT 180×120', values:Object.assign({},defaultValues,{C:180,D:120,thick:1.2}),
+    presses:[{CCdis:2450, IFgap:100, GapBC:90, effCav:1, pressCap:7890, pressEff:90, cyc:5, workHours:21.6, qty:1}],
+    kilns:[{moduleLen:2.1, moduleCount:150, kilnW:2.95, kilnCyc:70, kilnGap:0.45, kilnUtil:99, tR:2, tL:158.0099, selected:true}]},
+  {name:'GVT 60×60', values:Object.assign({},defaultValues,{C:60,D:60,thick:0.9}),
+    presses:[{CCdis:2450, IFgap:100, GapBC:90, effCav:4, pressCap:7890, pressEff:90, cyc:8, workHours:21.6, qty:1}],
+    kilns:JSON.parse(JSON.stringify(defaultKilns))}
+];
+function renderPresets(){
+  const row=document.getElementById('presetRow');
+  row.innerHTML='<span class="note" style="margin-right:4px;">Presets:</span>';
+  presets.forEach((p)=>{
+    const btn=document.createElement('button');
+    btn.className='preset-btn'; btn.type='button'; btn.textContent=p.name;
+    btn.addEventListener('click', ()=>{
+      Object.keys(p.values).forEach(id=>{ if(document.getElementById(id)) document.getElementById(id).value=p.values[id]; });
+      presses = JSON.parse(JSON.stringify(p.presses));
+      kilns = JSON.parse(JSON.stringify(p.kilns));
+      renderPressList();
+      renderKilnList();
+      render();
+    });
+    row.appendChild(btn);
+  });
+}
+
+renderPressList();
+renderKilnList();
+refreshAllMachineLists();
+render();
+renderTable();
+renderPresets();
+
+// ---------- Hidden Advanced Settings ----------
+const advLabels = {
+  thickMin:'Thickness min (cm)', thickMax:'Thickness max (cm)',
+  bdMin:'Bulk Density min', bdMax:'Bulk Density max',
+  shrinkMin:'Shrinkage min (%)', shrinkMax:'Shrinkage max (%)',
+  rectMin:'Rect. allowance min (cm)', rectMax:'Rect. allowance max (cm)',
+  glazeEffMin:'Glaze Eff min (%)', glazeEffMax:'Glaze Eff max (%)',
+  yieldMin:'Yield ratio min', yieldMax:'Yield ratio max',
+  pressCycMin:'Press Cycle min (/min)', pressCycMax:'Press Cycle max (/min)',
+  pressEffMin:'Press Eff min (%)', pressEffMax:'Press Eff max (%)',
+  kilnCycMin:'Kiln Cycle min (min)', kilnCycMax:'Kiln Cycle max (min)',
+  kilnUtilMin:'Kiln Utilization min (%)',
+  gsBoundLo:'Goal Seek lower bound (×)', gsBoundHi:'Goal Seek upper bound (×)'
+};
+function renderAdvFields(){
+  const el = document.getElementById('advFields');
+  el.innerHTML = Object.keys(advCfg).map(k=>
+    `<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:4px 0; font-size:12px;">
+      <label style="color:var(--muted);">${advLabels[k]||k}</label>
+      <input type="number" step="0.01" data-advkey="${k}" value="${advCfg[k]}" style="width:90px; padding:5px 7px; border:1px solid var(--line); border-radius:6px;">
+    </div>`).join('');
+}
+document.getElementById('advTrigger').addEventListener('click', ()=>{
+  renderAdvFields();
+  document.getElementById('advModal').classList.add('open');
+});
+document.getElementById('advClose').addEventListener('click', ()=>document.getElementById('advModal').classList.remove('open'));
+document.getElementById('advModal').addEventListener('click', (e)=>{ if(e.target.id==='advModal') document.getElementById('advModal').classList.remove('open'); });
+document.getElementById('advSaveBtn').addEventListener('click', ()=>{
+  document.querySelectorAll('[data-advkey]').forEach(inp=>{
+    advCfg[inp.dataset.advkey] = parseFloat(inp.value)||advCfg[inp.dataset.advkey];
+  });
+  document.getElementById('advModal').classList.remove('open');
+  render();
+});
+if('serviceWorker' in navigator){ window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+</script>
+</body>
+</html>
