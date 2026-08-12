@@ -17,108 +17,114 @@
     --danger:#b0201a; --danger-soft:#fce3e1; --caution:#8a6d1a; --caution-soft:#fbf2d5;
     --mono: 'IBM Plex Mono','SF Mono',Consolas,monospace;
     --sans: 'IBM Plex Sans','Segoe UI',Arial,sans-serif;
+    --surface-alt:var(--surface-alt); --input-bg:var(--input-bg); --accent-dark:var(--accent-dark); --accent-softer:var(--accent-softer);
+    --fs-2xs:9.5px; --fs-xs:10px; --fs-sm:10.5px; --fs-base:11.5px; --fs-md:12px; --fs-lg:12.5px;
+    --fs-xl:15px; --fs-2xl:18px; --fs-3xl:20px;
   }
   *{box-sizing:border-box;}
+  *:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
   body{margin:0; font-family:var(--sans); background:var(--paper); color:var(--ink); padding:20px 20px 60px; line-height:1.5;}
   .wrap{max-width:1300px;margin:0 auto;}
-  h1{font-size:20px; font-weight:700; letter-spacing:-0.01em; margin:0 0 4px;}
+  h1{font-size:var(--fs-3xl); font-weight:700; letter-spacing:-0.01em; margin:0 0 4px;}
   h2.section-title{font-size:14px; font-weight:700; margin:24px 0 4px; color:var(--ink);}
-  .sub{color:var(--muted); font-size:12.5px; margin-bottom:14px;}
+  .sub{color:var(--muted); font-size:var(--fs-lg); margin-bottom:14px;}
   .tabs{display:flex; gap:6px; border-bottom:2px solid var(--line); margin-bottom:18px;}
   .tab-btn{background:none; border:none; border-bottom:3px solid transparent; color:var(--muted); font-family:var(--sans); font-size:13.5px; font-weight:600; padding:10px 16px; cursor:pointer; margin-bottom:-2px;}
   .tab-btn.active{color:var(--accent); border-bottom-color:var(--accent);}
   .tabpanel{display:none;}
   .tabpanel.active{display:block;}
   .grid{display:flex; flex-direction:column; gap:12px; margin-bottom:16px;}
-  .stage{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 18px;}
-  .stage h2{flex-basis:100%; width:100%; font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); margin:0 0 2px; font-weight:700; border-bottom:1px solid var(--accent-soft); padding-bottom:7px; display:flex; justify-content:space-between; align-items:center;}
+  .stage{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 18px; box-shadow:0 1px 2px rgba(28,27,24,.04), 0 1px 8px rgba(28,27,24,.03); transition:box-shadow .15s;}
+  .stage:hover{box-shadow:0 2px 4px rgba(28,27,24,.05), 0 2px 12px rgba(28,27,24,.05);}
+  .stage h2{flex-basis:100%; width:100%; font-size:var(--fs-base); text-transform:uppercase; letter-spacing:.06em; color:var(--accent); margin:0 0 2px; font-weight:700; border-bottom:1px solid var(--accent-soft); padding-bottom:7px; display:flex; justify-content:space-between; align-items:center;}
   .stage.collapsed{padding-bottom:14px;}
   .stage.collapsed > *:not(h2){display:none;}
-  .hide-toggle{font-size:10px; text-transform:none; letter-spacing:0; color:var(--muted); background:none; border:1px solid var(--line); padding:2px 9px; border-radius:12px; cursor:pointer; font-weight:600;}
+  .hide-toggle{font-size:var(--fs-xs); text-transform:none; letter-spacing:0; color:var(--muted); background:none; border:1px solid var(--line); padding:2px 9px; border-radius:12px; cursor:pointer; font-weight:600;}
   .hide-toggle:hover{border-color:var(--accent); color:var(--accent);}
-  .stage .sh2note{flex-basis:100%; width:100%; font-size:10px; color:var(--muted); margin:-6px 0 0; font-style:italic;}
+  .stage .sh2note{flex-basis:100%; width:100%; font-size:var(--fs-xs); color:var(--muted); margin:-6px 0 0; font-style:italic;}
   .field{margin-bottom:0; flex:0 0 auto; min-width:100px;}
-  .field label{display:block; font-size:10px; color:var(--muted); margin-bottom:2px; white-space:nowrap;}
-  .field input{width:100px; padding:5px 7px; font-family:var(--mono); font-size:12.5px; border:1px solid var(--line); border-radius:6px; background:#fdfcf9; color:var(--ink);}
+  .field label{display:block; font-size:var(--fs-xs); color:var(--muted); margin-bottom:2px; white-space:nowrap;}
+  .field input{width:100px; padding:5px 7px; font-family:var(--mono); font-size:var(--fs-lg); border:1px solid var(--line); border-radius:6px; background:var(--input-bg); color:var(--ink);}
   .field input:focus{outline:2px solid var(--accent-soft); border-color:var(--accent);}
   .field.auto label{color:var(--accent);}
-  .field.auto input{background:#fbf3ea; border-color:var(--accent-soft);}
+  .field.auto input{background:var(--accent-softer); border-color:var(--accent-soft);}
   .field.auto{min-width:130px;}
   .field .autotag{font-size:8.5px; color:var(--accent); font-weight:700; letter-spacing:.03em; text-transform:uppercase;}
-  .field .readonly{width:100px; padding:5px 7px; font-family:var(--mono); font-size:12px; border:1px dashed var(--line); border-radius:6px; background:#f0ede4; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .field .readonly{width:100px; padding:5px 7px; font-family:var(--mono); font-size:var(--fs-md); border:1px dashed var(--line); border-radius:6px; background:var(--surface-alt); color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .field.wide .readonly, .field.wide input{width:160px;}
-  .result{flex:0 0 auto; min-width:130px; padding:4px 10px; border-left:2px solid var(--accent-soft); font-family:var(--mono); font-size:15px; font-weight:700; color:var(--ink);}
-  .result .unit{font-size:9.5px; color:var(--muted); font-weight:400; font-family:var(--sans); white-space:normal;}
-  .infobox{flex-basis:100%; width:100%; background:#f0ede4; border-radius:8px; padding:8px 12px; margin-top:2px; font-size:10.5px; color:var(--muted); font-family:var(--mono); display:flex; flex-direction:column; gap:4px 18px;}
+  .result{flex:0 0 auto; min-width:130px; padding:4px 10px; border-left:2px solid var(--accent-soft); font-family:var(--mono); font-size:var(--fs-xl); font-weight:700; color:var(--ink);}
+  .result .unit{font-size:var(--fs-2xs); color:var(--muted); font-weight:400; font-family:var(--sans); white-space:normal;}
+  .infobox{flex-basis:100%; width:100%; background:var(--surface-alt); border-radius:8px; padding:8px 12px; margin-top:2px; font-size:var(--fs-sm); color:var(--muted); font-family:var(--mono); display:flex; flex-direction:column; gap:4px 18px;}
   .infobox div{display:flex; gap:5px; white-space:nowrap;}
   .infobox div{display:flex; gap:5px; white-space:nowrap;}
   .flowrow{display:flex; align-items:center; gap:6px; margin:18px 0 12px; overflow-x:auto; padding-bottom:4px;}
   .flowbox{flex:1; min-width:140px; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:9px 11px; text-align:center;}
   .flowbox.bottleneck{border-color:var(--warn); background:var(--warn-soft);}
-  .flowbox .lbl{font-size:10.5px; color:var(--muted); margin-bottom:2px;}
+  .flowbox .lbl{font-size:var(--fs-sm); color:var(--muted); margin-bottom:2px;}
   .flowbox .val{font-family:var(--mono); font-size:17px; font-weight:700;}
   .flowbox.bottleneck .val{color:var(--warn);}
   .arrow{color:var(--muted); font-size:16px; flex-shrink:0;}
   .actions{display:flex; gap:10px; margin:8px 0 20px; flex-wrap:wrap;}
-  button{font-family:var(--sans); font-size:12.5px; font-weight:600; padding:8px 14px; border-radius:7px; border:1px solid var(--accent); cursor:pointer;}
+  button{font-family:var(--sans); font-size:var(--fs-lg); font-weight:600; padding:8px 14px; border-radius:7px; border:1px solid var(--accent); cursor:pointer;}
   .btn-primary{background:var(--accent); color:#fff;}
-  .btn-primary:hover{background:#973f18;}
+  .btn-primary:hover{background:var(--accent-dark);}
   .btn-ghost{background:transparent; color:var(--accent);}
   .btn-ghost:hover{background:var(--accent-soft);}
-  .btn-sm{padding:4px 8px; font-size:10.5px;}
-  .btn-tiny{padding:2px 8px; font-size:10px; border-radius:5px;}
+  .btn-sm{padding:4px 8px; font-size:var(--fs-sm);}
+  .btn-tiny{padding:2px 8px; font-size:var(--fs-xs); border-radius:5px;}
   .tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--card);}
   table{width:100%; border-collapse:collapse;}
-  thead th{text-align:center; font-size:9.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); padding:6px 7px; border-bottom:1px solid var(--line); background:#f0ede4; white-space:nowrap; position:relative; overflow:hidden;}
-  tbody td{padding:6px 5px; font-family:var(--mono); font-size:11.5px; border-bottom:1px solid var(--line); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  thead th{text-align:center; font-size:var(--fs-2xs); text-transform:uppercase; letter-spacing:.03em; color:var(--muted); padding:6px 7px; border-bottom:1px solid var(--line); background:var(--surface-alt); white-space:nowrap; position:relative; overflow:hidden;}
+  tbody td{padding:6px 5px; font-family:var(--mono); font-size:var(--fs-base); border-bottom:1px solid var(--line); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   #historyTable{min-width:600px;}
   thead th.grp{color:var(--accent); border-left:1px solid var(--line);}
   #historyTable tbody td:nth-child(2){text-align:left; font-weight:600;}
   tbody td.calc{background:var(--accent-soft); font-weight:700;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr.top td.calc{color:var(--good); background:var(--good-soft);}
-  .del{background:none; border:none; color:var(--muted); cursor:pointer; font-size:15px; padding:0 4px;}
+  .del{background:none; border:none; color:var(--muted); cursor:pointer; font-size:var(--fs-xl); padding:0 4px;}
   .del:hover{color:var(--warn);}
-  .note{font-size:11.5px; color:var(--muted); margin-top:8px;}
-  .warnbox{background:var(--warn-soft); border:1px solid #e3b199; border-radius:8px; padding:9px 13px; font-size:12px; color:var(--warn); margin-bottom:16px;}
-  .infonote-box{background:#eef1ea; border:1px solid #c7cfc0; border-radius:8px; padding:9px 13px; font-size:12px; color:#3d4a35; margin-bottom:16px;}
+  .note{font-size:var(--fs-base); color:var(--muted); margin-top:8px;}
+  .warnbox{background:var(--warn-soft); border:1px solid #e3b199; border-radius:8px; padding:9px 13px; font-size:var(--fs-md); color:var(--warn); margin-bottom:16px;}
+  .infonote-box{background:#eef1ea; border:1px solid #c7cfc0; border-radius:8px; padding:9px 13px; font-size:var(--fs-md); color:#3d4a35; margin-bottom:16px;}
   .warnpanel{border-radius:8px; margin-bottom:16px; overflow:hidden; display:none;}
   .warnpanel.show{display:block;}
-  .warnpanel h3{margin:0; padding:9px 15px; font-size:12px; text-transform:uppercase; letter-spacing:.03em; background:var(--danger); color:#fff;}
+  .warnpanel h3{margin:0; padding:9px 15px; font-size:var(--fs-md); text-transform:uppercase; letter-spacing:.03em; background:var(--danger); color:#fff;}
   .warnpanel h3.caution-only{background:var(--caution);}
   .warnlist{list-style:none; margin:0; padding:0;}
-  .warnlist li{padding:9px 15px; font-size:12.5px; border-top:1px solid rgba(0,0,0,.06); display:flex; gap:8px;}
+  .warnlist li{padding:9px 15px; font-size:var(--fs-lg); border-top:1px solid rgba(0,0,0,.06); display:flex; gap:8px;}
   .warnlist li.err{background:var(--danger-soft); color:var(--danger);}
   .warnlist li.caution{background:var(--caution-soft); color:var(--caution);}
   .warnlist li .icon{flex:0 0 auto;}
   .suggestbox{background:var(--card); border:1px solid var(--warn); border-left:4px solid var(--warn); border-radius:8px; padding:12px 15px; margin-bottom:16px;}
-  .suggestbox h3{margin:0 0 5px; font-size:12px; color:var(--warn); text-transform:uppercase; letter-spacing:.03em;}
-  .suggestbox p{margin:0; font-size:12.5px; color:var(--ink);}
+  .suggestbox h3{margin:0 0 5px; font-size:var(--fs-md); color:var(--warn); text-transform:uppercase; letter-spacing:.03em;}
+  .suggestbox p{margin:0; font-size:var(--fs-lg); color:var(--ink);}
   .sensbox{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:20px;}
-  .sensbox label{font-size:11.5px; color:var(--muted); display:block; margin-bottom:6px;}
+  .sensbox label{font-size:var(--fs-base); color:var(--muted); display:block; margin-bottom:6px;}
   .sensrow{display:flex; align-items:center; gap:12px;}
   .sensrow input[type=range]{flex:1;}
   .senscompare{display:flex; gap:14px; margin-top:10px; flex-wrap:wrap;}
-  .senscard{background:#f0ede4; border-radius:8px; padding:8px 12px; flex:1; min-width:120px;}
-  .senscard .lbl{font-size:10px; color:var(--muted); text-transform:uppercase;}
-  .senscard .val{font-family:var(--mono); font-size:15px; font-weight:700;}
+  .senscard{background:var(--surface-alt); border-radius:8px; padding:8px 12px; flex:1; min-width:120px;}
+  .senscard .lbl{font-size:var(--fs-xs); color:var(--muted); text-transform:uppercase;}
+  .senscard .val{font-family:var(--mono); font-size:var(--fs-xl); font-weight:700;}
   .senscard.delta .val.pos{color:var(--good);}
   .senscard.delta .val.neg{color:var(--warn);}
   .preset-row{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center;}
-  .preset-btn{background:var(--card); border:1px solid var(--line); color:var(--ink); font-size:11.5px; font-weight:500; padding:6px 12px; border-radius:20px; cursor:pointer;}
+  .preset-btn{background:var(--card); border:1px solid var(--line); color:var(--ink); font-size:var(--fs-base); font-weight:500; padding:6px 12px; border-radius:20px; cursor:pointer;}
   .preset-btn:hover{border-color:var(--accent); color:var(--accent);}
   .rmgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; align-items:start;}
   @media(max-width:1100px){.rmgrid{grid-template-columns:repeat(2,1fr);}}
-  .machine-item{border:1px solid var(--line); border-radius:8px; padding:8px; margin-bottom:8px; background:#fdfcf9;}
+  .machine-item{border:1px solid var(--line); border-radius:8px; padding:8px; margin-bottom:8px; background:var(--input-bg); box-shadow:0 1px 2px rgba(28,27,24,.03);}
+  .subgroup-label{font-size:var(--fs-2xs); font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); opacity:.75; margin:6px 0 2px 2px;}
   .machine-item-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
-  .machine-item-head .letter{font-weight:700; font-size:12px; color:var(--accent);}
+  .machine-item-head .letter{font-weight:700; font-size:var(--fs-md); color:var(--accent);}
   .machine-row{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;}
   .machine-row.three{grid-template-columns:1fr 1fr 1fr;}
   .machine-row>div{display:flex; flex-direction:column; justify-content:flex-end;}
-  .machine-row label{font-size:9.5px; color:var(--muted); display:block; margin-bottom:2px; min-height:2.3em; line-height:1.15;}
-  .machine-row input{width:100%; padding:4px 6px; font-family:var(--mono); font-size:11.5px; border:1px solid var(--line); border-radius:5px;}
+  .machine-row label{font-size:var(--fs-2xs); color:var(--muted); display:block; margin-bottom:2px; min-height:2.3em; line-height:1.15;}
+  .machine-row input{width:100%; padding:4px 6px; font-family:var(--mono); font-size:var(--fs-base); border:1px solid var(--line); border-radius:5px;}
   .machine-total{font-size:11px; font-family:var(--mono); font-weight:700; color:var(--ink); text-align:right;}
-  .statusbadge{display:inline-block; padding:3px 10px; border-radius:12px; font-size:10.5px; font-weight:700; margin-top:6px;}
+  .statusbadge{display:inline-block; padding:3px 10px; border-radius:12px; font-size:var(--fs-sm); font-weight:700; margin-top:6px;}
   .statusbadge.ok{background:var(--good-soft); color:var(--good);}
   .statusbadge.bad{background:var(--warn-soft); color:var(--warn);}
   .chartcard{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin-top:14px;}
@@ -127,22 +133,22 @@
   .modal-box{background:var(--card); border-radius:12px; max-width:1000px; width:100%; max-height:85vh; display:flex; flex-direction:column; overflow:hidden;}
   .modal-box-wide{max-width:1080px;}
   .modal-head{display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--line);}
-  .modal-head h3{margin:0; font-size:15px; color:var(--ink);}
-  .modal-close{background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer; padding:0 6px;}
+  .modal-head h3{margin:0; font-size:var(--fs-xl); color:var(--ink);}
+  .modal-close{background:none; border:none; font-size:var(--fs-3xl); color:var(--muted); cursor:pointer; padding:0 6px;}
   .modal-close:hover{color:var(--warn);}
   .modal-search{padding:10px 18px; border-bottom:1px solid var(--line); display:flex; gap:8px; align-items:center;}
   .modal-search input{flex:1; padding:7px 10px; font-family:var(--sans); font-size:13px; border:1px solid var(--line); border-radius:7px;}
   .add-custom-row{display:none; gap:6px; padding:10px 18px; border-bottom:1px solid var(--line); background:#faf7f0; flex-wrap:wrap;}
   .add-custom-row.show{display:flex;}
-  .add-custom-row input{width:110px; padding:6px 8px; font-family:var(--sans); font-size:12px; border:1px solid var(--line); border-radius:6px;}
+  .add-custom-row input{width:110px; padding:6px 8px; font-family:var(--sans); font-size:var(--fs-md); border:1px solid var(--line); border-radius:6px;}
   .add-custom-row input#ac_product, .add-custom-row input#ac_size{width:150px;}
   .add-custom-row input#ac_cavity{width:60px;}
-  .btn-solid{background:var(--accent); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer; font-family:var(--sans);}
+  .btn-solid{background:var(--accent); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:var(--fs-md); cursor:pointer; font-family:var(--sans);}
   .btn-solid:hover{opacity:.9;}
   .modal-body{overflow-y:auto; overflow-x:auto; padding:0;}
   .catalog-table{width:100%; border-collapse:collapse; table-layout:fixed;}
-  .catalog-table thead th{position:sticky; top:0; background:#f0ede4; text-align:left; font-size:10.5px; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--line); position:relative; overflow:hidden; white-space:nowrap;}
-  .catalog-table tbody td{padding:7px 10px; font-size:12px; border-bottom:1px solid var(--line); font-family:var(--mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .catalog-table thead th{position:sticky; top:0; background:var(--surface-alt); text-align:left; font-size:var(--fs-sm); text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--line); position:relative; overflow:hidden; white-space:nowrap;}
+  .catalog-table tbody td{padding:7px 10px; font-size:var(--fs-md); border-bottom:1px solid var(--line); font-family:var(--mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .catalog-table tbody tr:hover{background:#faf7f0;}
   .col-resizer{position:absolute; right:0; top:0; width:6px; height:100%; cursor:col-resize; user-select:none; z-index:2;}
   .col-resizer:hover, .col-resizer.resizing{background:var(--accent);}
@@ -150,16 +156,16 @@
   .glaze-col{display:none;}
   .custom-badge{font-size:9px; background:var(--accent-soft); color:var(--accent); padding:1px 5px; border-radius:4px; margin-left:5px;}
   .compare-table{border-collapse:collapse; width:auto; max-width:100%;}
-  .compare-table th,.compare-table td{padding:9px 20px; border-bottom:1px solid var(--line); font-size:12.5px;}
-  .compare-table thead th{background:#f0ede4; text-align:center; font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); white-space:nowrap;}
+  .compare-table th,.compare-table td{padding:9px 20px; border-bottom:1px solid var(--line); font-size:var(--fs-lg);}
+  .compare-table thead th{background:var(--surface-alt); text-align:center; font-size:var(--fs-sm); text-transform:uppercase; letter-spacing:.03em; color:var(--muted); white-space:nowrap;}
   .compare-table thead th:first-child{text-align:left;}
   .compare-table tbody td{text-align:center; font-family:var(--mono); white-space:nowrap;}
   .compare-table tbody td:first-child{text-align:left; font-family:var(--sans); font-weight:600; white-space:normal;}
   .compare-table tbody tr:hover{background:#faf7f0;}
   .catalog-use-btn{background:var(--accent); color:#fff; border:none; padding:5px 12px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;}
-  .catalog-use-btn:hover{background:#973f18;}
+  .catalog-use-btn:hover{background:var(--accent-dark);}
   .catalog-use-btn:disabled{background:var(--line); cursor:not-allowed;}
-  .catalog-btn{background:transparent; border:1px solid var(--accent); color:var(--accent); font-size:10.5px; font-weight:600; padding:4px 10px; border-radius:6px; cursor:pointer;}
+  .catalog-btn{background:transparent; border:1px solid var(--accent); color:var(--accent); font-size:var(--fs-sm); font-weight:600; padding:4px 10px; border-radius:6px; cursor:pointer;}
   .catalog-btn:hover{background:var(--accent-soft);}
   @media print{
     .actions,.preset-row,button,.tabs{display:none !important;}
@@ -172,7 +178,7 @@
   .report-page.compact .report-table{font-size:8.3px;}
   .report-page.compact .report-table th,.report-page.compact .report-table td{padding:1px 4px;}
   .report-page.compact .report-box{padding:4px 9px; margin-bottom:5px !important;}
-  .report-page.compact .report-row{font-size:9.5px; padding:0.5px 0;}
+  .report-page.compact .report-row{font-size:var(--fs-2xs); padding:0.5px 0;}
   .report-page.compact .report-box h3{font-size:8.5px; margin-bottom:2px; padding-bottom:1px;}
   #reportView{display:none;}
   body.report-mode > .wrap > *{display:none !important;}
@@ -198,7 +204,7 @@
     .modal-box{max-height:92vh; border-radius:10px 10px 0 0;}
     .add-custom-row input{width:100%; flex:1 1 45%;}
     .actions{gap:6px;}
-    .actions button, .btn-ghost{font-size:12.5px; padding:9px 12px; min-height:38px;}
+    .actions button, .btn-ghost{font-size:var(--fs-lg); padding:9px 12px; min-height:38px;}
     table.catalog-table, .tablewrap table, .compare-table{font-size:11px;}
     .compare-table th,.compare-table td{padding:7px 10px;}
     input, select, .del, .catalog-btn, .preset-btn, .tab-btn{min-height:40px;}
@@ -211,24 +217,38 @@
     .senscard{flex:1 1 100%;}
   }
   .report-header{border-bottom:2px solid var(--accent); padding-bottom:5px; margin-bottom:8px;}
-  .report-header h1{font-size:15px; margin:0 0 2px;}
-  .report-header .sub{font-size:9.5px; color:var(--muted);}
+  .report-header h1{font-size:var(--fs-xl); margin:0 0 2px;}
+  .report-header .sub{font-size:var(--fs-2xs); color:var(--muted);}
   .report-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;}
   .report-box{border:1px solid var(--line); border-radius:6px; padding:6px 10px;}
-  .report-box h3{font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); margin:0 0 4px; border-bottom:1px solid var(--line); padding-bottom:3px;}
-  .report-row{display:flex; justify-content:space-between; font-size:10.5px; padding:1px 0;}
+  .report-box h3{font-size:var(--fs-2xs); text-transform:uppercase; letter-spacing:.04em; color:var(--accent); margin:0 0 4px; border-bottom:1px solid var(--line); padding-bottom:3px;}
+  .report-row{display:flex; justify-content:space-between; font-size:var(--fs-sm); padding:1px 0;}
   .report-row span:first-child{color:var(--muted);}
   .report-row span:last-child{font-family:var(--mono); font-weight:600;}
   .report-hero{background:var(--accent-soft); border:2px solid var(--accent); border-radius:8px; text-align:center;}
   .report-hero .num{color:var(--accent); font-family:var(--mono); text-transform:uppercase; letter-spacing:.02em;}
-  .report-table{width:100%; border-collapse:collapse; font-size:9.5px; margin-top:3px;}
+  .report-table{width:100%; border-collapse:collapse; font-size:var(--fs-2xs); margin-top:3px;}
   .report-table th,.report-table td{border:1px solid var(--line); padding:2px 5px; text-align:left;}
-  .report-table th{background:#f0ede4;}
-  .report-warn{border:1px solid var(--danger); background:var(--danger-soft); color:var(--danger); border-radius:8px; padding:8px 12px; font-size:11.5px; margin-top:10px;}
+  .report-table th{background:var(--surface-alt);}
+  .report-warn{border:1px solid var(--danger); background:var(--danger-soft); color:var(--danger); border-radius:8px; padding:8px 12px; font-size:var(--fs-base); margin-top:10px;}
   .report-page{page-break-after:always;}
   @page{margin:10mm;}
   .report-page:last-child{page-break-after:auto;}
   #advTrigger{position:fixed; bottom:0; right:0; width:22px; height:22px; cursor:default; z-index:9999; background:transparent;}
+  button svg, .btn-ghost svg, .btn-primary svg, .btn-solid svg, .catalog-btn svg{vertical-align:-3px; margin-right:5px;}
+  #saveIndicator{position:fixed; top:14px; right:16px; background:var(--card); border:1px solid var(--line); color:var(--muted); font-size:11px; font-weight:600; padding:5px 11px; border-radius:20px; box-shadow:0 2px 8px rgba(28,27,24,.08); z-index:9998; display:flex; align-items:center; gap:5px; opacity:0; transform:translateY(-4px); pointer-events:none; transition:opacity .25s, transform .25s;}
+  #saveIndicator.show{opacity:1; transform:translateY(0);}
+  #saveIndicator .dot{width:6px; height:6px; border-radius:50%; background:var(--good);}
+  button svg, .btn-ghost svg, .btn-primary svg, .btn-solid svg, .catalog-btn svg{vertical-align:-3px; margin-right:5px;}
+  .tab-num{display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:var(--line); color:var(--muted); font-size:var(--fs-sm); font-weight:700; margin-right:6px; vertical-align:1px;}
+  .tab-btn.active .tab-num{background:var(--accent); color:#fff;}
+  .app-footer{max-width:1300px; margin:32px auto 0; padding-top:14px; border-top:1px solid var(--line); color:var(--muted); font-size:var(--fs-sm); text-align:center;}
+  #stickyBar{position:fixed; top:0; left:0; right:0; background:var(--card); border-bottom:1px solid var(--line); box-shadow:0 2px 10px rgba(28,27,24,.07); padding:7px 20px; z-index:900; display:flex; align-items:center; justify-content:center; gap:28px; transform:translateY(-100%); transition:transform .2s;}
+  #stickyBar.show{transform:translateY(0);}
+  #stickyBar .sb-item{display:flex; flex-direction:column; align-items:center; line-height:1.2;}
+  #stickyBar .sb-label{font-size:var(--fs-2xs); color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
+  #stickyBar .sb-val{font-family:var(--mono); font-weight:700; font-size:var(--fs-lg); color:var(--ink);}
+  #stickyBar .sb-val.rl{color:var(--accent);}
 </style>
 </head>
 <body>
@@ -249,18 +269,17 @@
 </div>
 <div class="wrap">
   <h1 style="font-size:28px;">Tile Plant Production Capacity Calculator</h1>
-  <div class="sub" style="font-weight:700; font-size:18px; color:var(--ink);">Created by - Abhishek Singh Rathore</div>
+  <div class="sub" style="font-weight:700; font-size:var(--fs-2xl); color:var(--ink);">Created by - Abhishek Singh Rathore</div>
 
   <div class="infobox" style="display:block; background:#fbe2e2; color:#a3391c; white-space:nowrap; overflow-x:auto;">⚠️ Somtimes cavity formula subtracts an extra "-1" but Sometimes doesn't — so <b>Effective Cavity</b> is never auto-filled, only suggested.</div>
   <div class="infobox" style="display:block; background:#fbe2e2; color:#a3391c; white-space:nowrap; overflow-x:auto;">⚠️ <b>T/L is very sensitive to rounding</b> — always click "Use suggested value →".</div>
-  <div class="infonote-box">ℹ️ This file cannot use browser storage, so history does <b>not</b> survive closing the tab/browser. Use "History" tab → Export to Excel to save your work, and "Import CSV" next time to bring rows back in.</div>
 
   <div class="preset-row" id="presetRow"></div>
 
   <div class="tabs">
-    <button class="tab-btn active" data-tab="production">1️⃣ Production (Press → Kiln → Dust)</button>
-    <button class="tab-btn" data-tab="rawmat">2️⃣ Raw Material Supply Chain</button>
-    <button class="tab-btn" data-tab="history">3️⃣ History & Comparison</button>
+    <button class="tab-btn active" data-tab="production"><span class="tab-num">1</span>Production (Press → Kiln → Dust)</button>
+    <button class="tab-btn" data-tab="rawmat"><span class="tab-num">2</span>Raw Material Supply Chain</button>
+    <button class="tab-btn" data-tab="history"><span class="tab-num">3</span>History & Comparison</button>
   </div>
 
   <!-- ============ TAB 1: PRODUCTION ============ -->
@@ -314,14 +333,14 @@
     </div>
 
     <div style="margin-bottom:16px;">
-      <button type="button" class="btn-ghost btn-sm" id="scanBtn">🔍 Scan Inputs for Anomalies</button>
+      <button type="button" class="btn-ghost btn-sm" id="scanBtn"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="M20 20l-4.5-4.5"></path></svg>Scan Inputs for Anomalies</button>
       <div id="scanResult" style="margin-top:8px;"></div>
     </div>
 
     <div class="flowrow" id="flowrow"></div>
 
     <div class="suggestbox" id="suggestBox">
-      <h3>🎯 Bottleneck & suggestion</h3>
+      <h3><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px; margin-right:4px;"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="4"></circle><circle cx="12" cy="12" r="0.6" fill="currentColor"></circle></svg>Bottleneck & suggestion</h3>
       <p id="suggestText">–</p>
     </div>
 
@@ -350,8 +369,8 @@
       <div class="machine-row three">
         <div><label>Target RL Output (sqm/day)</label><input type="number" id="gsTarget" value="30000"></div>
         <div style="grid-column: span 2;">
-          <label style="font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); display:block; margin-bottom:5px;">Variables to solve for (equal % change applied together)</label>
-          <div style="display:flex; flex-wrap:wrap; gap:12px; font-family:var(--sans); font-size:12px;">
+          <label style="font-size:var(--fs-sm); text-transform:uppercase; letter-spacing:.04em; color:var(--muted); display:block; margin-bottom:5px;">Variables to solve for (equal % change applied together)</label>
+          <div style="display:flex; flex-wrap:wrap; gap:12px; font-family:var(--sans); font-size:var(--fs-md);">
             <label><input type="checkbox" class="gs-var" value="kilnCyc"> Kiln Cycle</label>
             <label><input type="checkbox" class="gs-var" value="tR"> T/R</label>
             <label><input type="checkbox" class="gs-var" value="tL"> T/L</label>
@@ -449,12 +468,12 @@
     <div class="actions">
       <button class="btn-primary" id="addBtn">+ Save current setup to History</button>
       <button class="btn-ghost" id="resetBtn">Reset Tab 1 to default (120×60)</button>
-      <button class="btn-ghost" id="printBtn">🖨️ Print / Save as PDF</button>
-      <button class="btn-ghost" id="xlsxBtn">⬇️ Export full calculation (.xlsx)</button>
-      <button class="btn-ghost" id="csvBtn">⬇️ Export table (CSV)</button>
-      <label class="btn-ghost" style="display:inline-flex; align-items:center;">⬆️ Import CSV<input type="file" id="csvImport" accept=".csv" style="display:none;"></label>
-      <button class="btn-ghost" id="sessionSaveBtn">💾 Save Entire Session (.json)</button>
-      <label class="btn-ghost" style="display:inline-flex; align-items:center;">📂 Load Session<input type="file" id="sessionLoad" accept=".json" style="display:none;"></label>
+      <button class="btn-ghost" id="printBtn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="9" width="12" height="7" rx="1"></rect><path d="M6 9V4h12v5"></path><path d="M8 16v4h8v-4"></path></svg>Print / Save as PDF</button>
+      <button class="btn-ghost" id="xlsxBtn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"></path><path d="M7 11l5 5 5-5"></path><path d="M5 20h14"></path></svg>Export full calculation (.xlsx)</button>
+      <button class="btn-ghost" id="csvBtn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"></path><path d="M7 11l5 5 5-5"></path><path d="M5 20h14"></path></svg>Export table (CSV)</button>
+      <label class="btn-ghost" style="display:inline-flex; align-items:center;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V9"></path><path d="M7 13l5-5 5 5"></path><path d="M5 20h14"></path></svg>Import CSV<input type="file" id="csvImport" accept=".csv" style="display:none;"></label>
+      <button class="btn-ghost" id="sessionSaveBtn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"></path><rect x="8" y="4" width="7" height="5"></rect><rect x="7" y="14" width="10" height="6"></rect></svg>Save Entire Session (.json)</button>
+      <label class="btn-ghost" style="display:inline-flex; align-items:center;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h6l2 2h10v10H3z"></path></svg>Load Session<input type="file" id="sessionLoad" accept=".json" style="display:none;"></label>
     </div>
 
     <div class="tablewrap">
@@ -483,17 +502,21 @@
       <tbody id="tbody"></tbody>
     </table>
     </div>
-    <div class="note" id="emptyNote">History empty — go to Tab 1, set up a scenario, then click "Save current setup to History".</div>
+    <div class="note" id="emptyNote" style="text-align:center; padding:32px 16px; background:var(--card); border:1px dashed var(--line); border-radius:10px;">
+      <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l4 2"></path></svg>
+      <div style="font-weight:600; margin-bottom:3px;">No scenarios saved yet</div>
+      <div style="color:var(--muted); font-size:var(--fs-base);">Go to Tab 1, set up a scenario, then click "Save current setup to History".</div>
+    </div>
     <div class="actions" style="margin-top:10px;">
-      <button class="btn-ghost" id="compareBtn">⚖️ Compare Selected (2–4)</button>
-      <button class="btn-ghost" id="reportBtn">📄 Generate Summary Report</button>
+      <button class="btn-ghost" id="compareBtn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"></path><path d="M5 7h14"></path><path d="M5 7l-3 6a3 3 0 006 0z"></path><path d="M19 7l-3 6a3 3 0 006 0z"></path></svg>Compare Selected (2–4)</button>
+      <button class="btn-primary" id="reportBtn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"></path><path d="M9 12h8"></path><path d="M9 16h8"></path><path d="M9 8h3"></path></svg>Generate Summary Report</button>
       <label class="btn-ghost" style="display:inline-flex; align-items:center; gap:5px;"><input type="checkbox" id="reportInclBottleneck" checked style="margin:0;"> Include Bottleneck box</label>
       <label class="btn-ghost" style="display:inline-flex; align-items:center; gap:5px;"><input type="checkbox" id="reportInclSpPressure" style="margin:0;"> Include Sp. Pressure column</label>
     </div>
     <div id="compareCard" class="chartcard" style="display:none;"></div>
 
     <div class="chartcard">
-      <div style="font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); font-weight:700; margin-bottom:8px;">📊 RL Output by size</div>
+      <div style="font-size:var(--fs-base); text-transform:uppercase; letter-spacing:.06em; color:var(--accent); font-weight:700; margin-bottom:8px;">📊 RL Output by size</div>
       <canvas id="comparisonChart" height="90"></canvas>
     </div>
   </div>
@@ -638,28 +661,32 @@ function renderKilnList(){
     div.className='machine-item';
     div.innerHTML=`
       <div class="machine-item-head">
-        <label style="display:inline-flex; align-items:center; gap:5px; font-family:var(--sans); font-size:12px; font-weight:700; color:var(--accent); cursor:pointer;">
+        <label style="display:inline-flex; align-items:center; gap:5px; font-family:var(--sans); font-size:var(--fs-md); font-weight:700; color:var(--accent); cursor:pointer;">
           <input type="checkbox" data-kilnsel="${i}" ${k.selected?'checked':''}> Kiln ${i+1}${k.selected?'':' (excluded from total)'}
         </label>
         ${kilns.length>1?`<button type="button" class="del" data-kdel="${i}">✕</button>`:''}
       </div>
+      <div class="subgroup-label">Module &amp; Length</div>
       <div class="machine-row three">
         <div><label>Module length (m)</label><input type="number" step="0.1" data-kfield="moduleLen" data-i="${i}" value="${k.moduleLen}"></div>
         <div><label>Module count</label><input type="number" data-kfield="moduleCount" data-i="${i}" value="${k.moduleCount}"></div>
         <div><label>Kiln Length (m)</label><div class="readonly" data-klen="${i}">${AE.toFixed(2)} m</div></div>
       </div>
+      <div class="subgroup-label">Width &amp; Cycle</div>
       <div class="machine-row three">
         <div><label>Kiln Width (m)</label><input type="number" step="0.05" data-kfield="kilnW" data-i="${i}" value="${k.kilnW}"></div>
         <div><label>Kiln Cycle (min)</label><input type="number" data-kfield="kilnCyc" data-i="${i}" value="${k.kilnCyc}"></div>
         <div><label>Row spacing allowance (%)</label><input type="number" step="0.01" data-kfield="kilnGap" data-i="${i}" value="${k.kilnGap}"></div>
       </div>
       <div class="note" data-ksuggtr="${i}" style="margin:2px 0 6px;">Auto T/R: <b>${sTR.val}</b> (raw: ${sTR.raw.toFixed(2)}) <button type="button" class="btn-ghost btn-tiny use-ktr-btn" data-i="${i}">Use suggested →</button></div>
+      <div class="subgroup-label">T/R &amp; Utilization</div>
       <div class="machine-row three">
         <div><label>T/R</label><input type="number" data-kfield="tR" data-i="${i}" value="${k.tR}"></div>
         <div><label>Kiln Utilization (%)</label><input type="number" data-kfield="kilnUtil" data-i="${i}" value="${k.kilnUtil}"></div>
         <div></div>
       </div>
       <div class="note" data-ksuggtl="${i}" style="margin:2px 0 6px;">Auto T/L: <b>${sTL.val.toFixed(4)}</b> — use ALL decimals <button type="button" class="btn-ghost btn-tiny use-ktl-btn" data-i="${i}">Use suggested →</button></div>
+      <div class="subgroup-label">T/L</div>
       <div class="machine-row three">
         <div><label>T/L</label><input type="number" step="0.0001" data-kfield="tL" data-i="${i}" value="${k.tL}"></div>
         <div></div><div></div>
@@ -727,18 +754,21 @@ function renderPressList(){
     const div=document.createElement('div');
     div.className='machine-item';
     div.innerHTML=`
-      <div class="machine-item-head"><span class="letter">Press ${i+1}</span><span><button type="button" class="catalog-btn open-catalog-btn" data-i="${i}">📋 Catalog</button> ${presses.length>1?`<button type="button" class="del" data-i="${i}">✕</button>`:''}</span></div>
+      <div class="machine-item-head"><span class="letter">Press ${i+1}</span><span><button type="button" class="catalog-btn open-catalog-btn" data-i="${i}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="1"></rect><rect x="9" y="2" width="6" height="4" rx="1"></rect><path d="M9 11h6"></path><path d="M9 15h6"></path></svg>Catalog</button> ${presses.length>1?`<button type="button" class="del" data-i="${i}">✕</button>`:''}</span></div>
+      <div class="subgroup-label">Geometry</div>
       <div class="machine-row three">
         <div><label>CC Distance (mm)</label><input type="number" data-field="CCdis" data-i="${i}" value="${p.CCdis}"></div>
         <div><label>I/F Gap (mm)</label><input type="number" data-field="IFgap" data-i="${i}" value="${p.IFgap}"></div>
         <div><label>Gap Between Cavity (mm)</label><input type="number" data-field="GapBC" data-i="${i}" value="${p.GapBC}"></div>
       </div>
       <div class="note" style="margin:2px 0 6px;" data-suggcav="${i}">Auto-suggested cavity: <b>${s.cav}</b> (raw: ${s.raw.toFixed(2)}) <button type="button" class="btn-ghost btn-tiny use-cav-btn" data-i="${i}">Use suggested →</button></div>
+      <div class="subgroup-label">Cavity &amp; Capacity</div>
       <div class="machine-row three">
         <div><label>Effective Cavity</label><input type="number" data-field="effCav" data-i="${i}" value="${p.effCav}"></div>
         <div><label>Press Capacity (Tons)</label><input type="number" data-field="pressCap" data-i="${i}" value="${p.pressCap}"></div>
         <div><label>Press Efficiency (%)</label><input type="number" data-field="pressEff" data-i="${i}" value="${p.pressEff}"></div>
       </div>
+      <div class="subgroup-label">Cycle &amp; Quantity</div>
       <div class="machine-row three">
         <div><label>Press Cycle (/min)</label><input type="number" data-field="cyc" data-i="${i}" value="${p.cyc}"></div>
         <div><label>Working hours/day</label><input type="number" step="0.1" data-field="workHours" data-i="${i}" value="${p.workHours}"></div>
@@ -1130,6 +1160,11 @@ function render(){
      <div><span>Sp. Wt</span><span>${r.N.toFixed(2)} kg/sqm</span></div>`;
 
   document.getElementById('out_Ytot').innerHTML = Math.round(r.Ytot).toLocaleString()+'<div class="unit">Total Press Output — all presses combined, sqm/day</div>';
+  if(document.getElementById('sb_press')){
+    document.getElementById('sb_press').textContent = Math.round(r.Ytot).toLocaleString();
+    document.getElementById('sb_kiln').textContent = Math.round(r.AH).toLocaleString();
+    document.getElementById('sb_rl').textContent = Math.round(r.AO).toLocaleString();
+  }
   document.getElementById('out_Z').innerHTML = r.Zmin.toFixed(1)+'<div class="unit">Total tiles/min (all presses)</div>';
   document.getElementById('out_AAtot').innerHTML = Math.round(r.AAtot).toLocaleString()+'<div class="unit">Total, sqm/day</div>';
   document.getElementById('out_AH').innerHTML = Math.round(r.AH).toLocaleString()+'<div class="unit">Total Kiln Output (✓ selected kilns), sqm/day</div>';
@@ -1262,7 +1297,7 @@ document.getElementById('gsSolveBtn').addEventListener('click', ()=>{
       : `<span style="color:var(--danger);">⚠️ Target practical range (${advCfg.gsBoundLo}×–${advCfg.gsBoundHi}×) ke bahar hai — closest achievable: ${Math.round(r.AO).toLocaleString()} sqm/day.</span><br>`;
     r.k2.forEach((k,i)=>{
       if(!k.selected) return;
-      html += `<span style="font-size:11.5px; color:var(--muted);">Kiln ${i+1}: `;
+      html += `<span style="font-size:var(--fs-base); color:var(--muted);">Kiln ${i+1}: `;
       if(kilnVars.includes('kilnCyc')) html+=`Cycle → ${k.kilnCyc.toFixed(2)} min &nbsp;`;
       if(kilnVars.includes('tR') || kilnVars.includes('kilnW')) html+=`T/R → ${k.tR} &nbsp;`;
       if(kilnVars.includes('tL')) html+=`T/L → ${k.tL.toFixed(4)} &nbsp;`;
@@ -1279,7 +1314,7 @@ document.getElementById('gsSolveBtn').addEventListener('click', ()=>{
     html += r.achievable
       ? `✅ Target achievable — ${(pct>=0?'+':'')}${pct.toFixed(1)}% change needed. Result: ${Math.round(r.Ytot).toLocaleString()} sqm/day.<br>`
       : `<span style="color:var(--danger);">⚠️ Target practical range (${advCfg.gsBoundLo}×–${advCfg.gsBoundHi}×) ke bahar hai — closest achievable: ${Math.round(r.Ytot).toLocaleString()} sqm/day.</span><br>`;
-    r.p2.forEach((p,i)=>{ html += `<span style="font-size:11.5px; color:var(--muted);">Press ${i+1}: Cycle → ${p.cyc.toFixed(2)}/min</span><br>`; });
+    r.p2.forEach((p,i)=>{ html += `<span style="font-size:var(--fs-base); color:var(--muted);">Press ${i+1}: Cycle → ${p.cyc.toFixed(2)}/min</span><br>`; });
     html += `<button type="button" class="btn-ghost btn-tiny" id="gsApplyPressBtn" style="margin-top:4px;">Apply to Press(es) →</button>`;
     html += `<div class="note" style="margin-top:6px;">Note: is calculator ke model mein RL Output sirf Kiln stage se calculate hota hai — Press Cycle sirf Press Output (Y total) badalta hai, RL Output ko directly affect nahi karta.</div></div>`;
   }
@@ -1556,8 +1591,8 @@ function renderChangeLog(){
   const el = document.getElementById('changeLogBox');
   if(!el) return;
   if(changeLog.length===0){ el.innerHTML=''; return; }
-  el.innerHTML = '<div style="font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-bottom:4px;">🕐 Last 5 changes</div>' +
-    changeLog.map(c=>`<div><span>${c.label}</span><span>${c.value} <span style="color:var(--muted); font-size:9.5px;">(${c.time.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})})</span></span></div>`).join('');
+  el.innerHTML = '<div style="font-size:var(--fs-xs); text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-bottom:4px;">🕐 Last 5 changes</div>' +
+    changeLog.map(c=>`<div><span>${c.label}</span><span>${c.value} <span style="color:var(--muted); font-size:var(--fs-2xs);">(${c.time.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})})</span></span></div>`).join('');
 }
 
 // ---------- Wiring for Tab 1 fields ----------
@@ -1594,7 +1629,7 @@ function renderTable(){
     if(r.AO===minRL) tr.className='top';
     tr.innerHTML=`
       <td><input type="checkbox" class="cmp-check" data-i="${idx}"></td>
-      <td title="${(r.scenarioNote||'').replace(/"/g,'&quot;')}">${r.scenarioName || (r.C+'×'+r.D)}${r.scenarioNote?' 📝':''}<br><span style="font-size:9.5px; color:var(--muted); font-weight:400;">${r.C}×${r.D}</span></td>
+      <td title="${(r.scenarioNote||'').replace(/"/g,'&quot;')}">${r.scenarioName || (r.C+'×'+r.D)}${r.scenarioNote?' 📝':''}<br><span style="font-size:var(--fs-2xs); color:var(--muted); font-weight:400;">${r.C}×${r.D}</span></td>
       <td>${r.pressItemsSnapshot.length} types / ${r.pressItemsSnapshot.reduce((a,p)=>a+p.qty,0)} total</td><td class="calc">${Math.round(r.Ytot).toLocaleString()}</td>
       <td class="glaze-col">${r.glazeEff}</td><td class="calc glaze-col">${Math.round(r.AAtot).toLocaleString()}</td>
       <td>${r.kilnItemsSnapshot.filter(k=>k.selected).length}/${r.kilnItemsSnapshot.length}</td><td class="calc">${Math.round(r.AH).toLocaleString()}</td>
@@ -1641,7 +1676,7 @@ document.getElementById('compareBtn').addEventListener('click', ()=>{
     ['Silo Buffer (days)', r=>+computeRawMaterialChain(r.AKtotalPerDay).siloBufferDays.toFixed(1), true],
     ['Slip Tank Buffer (days)', r=>+computeRawMaterialChain(r.AKtotalPerDay).slipBufferDays.toFixed(1), true]
   ];
-  let html = '<div style="font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); font-weight:700; margin-bottom:10px;">⚖️ Scenario Comparison</div>';
+  let html = '<div style="font-size:var(--fs-base); text-transform:uppercase; letter-spacing:.06em; color:var(--accent); font-weight:700; margin-bottom:10px;">⚖️ Scenario Comparison</div>';
   html += '<div style="overflow-x:auto;"><table class="compare-table"><thead><tr><th>Metric</th>';
   scenarios.forEach((s,i)=>{ html += `<th>Scenario ${i+1}<br><span style="font-weight:400;">(${s.C}×${s.D})</span></th>`; });
   html += '</tr></thead><tbody>';
@@ -1656,7 +1691,7 @@ document.getElementById('compareBtn').addEventListener('click', ()=>{
         const pct = baseVal!==0 ? (delta/baseVal*100) : 0;
         const sign = delta>=0?'+':'';
         const color = delta>=0 ? 'var(--good)' : 'var(--danger)';
-        html += `<td>${val.toLocaleString()}<br><span style="font-size:10.5px; color:${color};">${sign}${delta.toLocaleString()} (${sign}${pct.toFixed(1)}%)</span></td>`;
+        html += `<td>${val.toLocaleString()}<br><span style="font-size:var(--fs-sm); color:${color};">${sign}${delta.toLocaleString()} (${sign}${pct.toFixed(1)}%)</span></td>`;
       }
     });
     html += '</tr>';
@@ -1730,7 +1765,7 @@ function buildReportPage(r){
       <div class="sub">${titleLine}, ${r.thick} cm thick · Generated ${dateStr}</div>
     </div>
     <div class="report-hero" style="padding:6px 12px; margin-bottom:8px;">
-      <div class="num" style="font-size:18px;">${Math.round(r.AO).toLocaleString()} sqm/day <span style="font-size:10px; font-weight:400; text-transform:none; color:var(--muted);">— Final RL (Saleable) Output</span></div>
+      <div class="num" style="font-size:var(--fs-2xl);">${Math.round(r.AO).toLocaleString()} sqm/day <span style="font-size:var(--fs-xs); font-weight:400; text-transform:none; color:var(--muted);">— Final RL (Saleable) Output</span></div>
     </div>
     <div class="report-grid">
       <div class="report-box">
@@ -1751,8 +1786,8 @@ function buildReportPage(r){
       </div>
     </div>
     ${inclBottleneck ? `<div class="report-box" style="margin-bottom:8px;">
-      <h3>🎯 Bottleneck & Suggestion</h3>
-      <div style="font-size:10.5px;">${getBottleneckText(r)}</div>
+      <h3><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-1px; margin-right:3px;"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="4"></circle><circle cx="12" cy="12" r="0.6" fill="currentColor"></circle></svg>Bottleneck & Suggestion</h3>
+      <div style="font-size:var(--fs-sm);">${getBottleneckText(r)}</div>
     </div>` : ''}
     <div class="report-box" style="margin-bottom:8px;">
       <h3>Press Detail (${r.pressItemsSnapshot.length} type${r.pressItemsSnapshot.length>1?'s':''})</h3>
@@ -1880,6 +1915,7 @@ function autoSave(){
     const formValues={};
     AUTOSAVE_FORM_IDS.forEach(id=>{ const el=document.getElementById(id); if(el) formValues[id]=el.value; });
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({formValues, presses, kilns, rows, savedAt:Date.now()}));
+    if(typeof flashSaveIndicator==='function') flashSaveIndicator('Saved');
   }catch(e){ /* storage full/unavailable — silently skip, doesn't block the app */ }
 }
 function autoRestore(){
@@ -2029,6 +2065,39 @@ function renderPresets(){
   });
 }
 
+// ---------- Save indicator (subtle, top-right) ----------
+const saveIndicator = document.createElement('div');
+saveIndicator.id = 'saveIndicator';
+saveIndicator.innerHTML = '<span class="dot"></span><span id="saveIndicatorText">Saved</span>';
+document.body.appendChild(saveIndicator);
+let __saveIndicatorTimer=null;
+function flashSaveIndicator(text){
+  document.getElementById('saveIndicatorText').textContent = text;
+  saveIndicator.classList.add('show');
+  clearTimeout(__saveIndicatorTimer);
+  __saveIndicatorTimer = setTimeout(()=>saveIndicator.classList.remove('show'), 1400);
+}
+
+// ---------- Sticky mini results bar (Production tab, on scroll) ----------
+const stickyBar = document.createElement('div');
+stickyBar.id = 'stickyBar';
+stickyBar.innerHTML = `
+  <div class="sb-item"><span class="sb-label">Press</span><span class="sb-val" id="sb_press">–</span></div>
+  <div class="sb-item"><span class="sb-label">Kiln</span><span class="sb-val" id="sb_kiln">–</span></div>
+  <div class="sb-item"><span class="sb-label">RL Output</span><span class="sb-val rl" id="sb_rl">–</span></div>`;
+document.body.appendChild(stickyBar);
+window.addEventListener('scroll', ()=>{
+  const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+  if(activeTab==='production' && window.scrollY>280) stickyBar.classList.add('show');
+  else stickyBar.classList.remove('show');
+}, {passive:true});
+
+// ---------- Footer ----------
+const appFooter = document.createElement('div');
+appFooter.className = 'app-footer';
+appFooter.textContent = 'Tile Plant Production Capacity Calculator · v24 · Created by Abhishek Singh Rathore';
+document.body.appendChild(appFooter);
+
 const __hadDraft = !!localStorage.getItem(AUTOSAVE_KEY);
 autoRestore();
 renderPressList();
@@ -2037,13 +2106,7 @@ refreshAllMachineLists();
 render();
 renderTable();
 renderPresets();
-if(__hadDraft){
-  const note=document.createElement('div');
-  note.textContent='↩ Previous draft auto-restored (from last auto-save).';
-  note.style.cssText='position:fixed; bottom:10px; left:10px; right:10px; max-width:360px; margin:0 auto; background:var(--accent,#b45524); color:#fff; padding:8px 14px; border-radius:8px; font-size:12px; z-index:999; box-shadow:0 2px 10px rgba(0,0,0,.2); text-align:center;';
-  document.body.appendChild(note);
-  setTimeout(()=>note.remove(), 4000);
-}
+if(__hadDraft){ flashSaveIndicator('Draft restored'); }
 
 // ---------- Hidden Advanced Settings ----------
 const advLabels = {
@@ -2062,7 +2125,7 @@ const advLabels = {
 function renderAdvFields(){
   const el = document.getElementById('advFields');
   el.innerHTML = Object.keys(advCfg).map(k=>
-    `<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:4px 0; font-size:12px;">
+    `<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:4px 0; font-size:var(--fs-md);">
       <label style="color:var(--muted);">${advLabels[k]||k}</label>
       <input type="number" step="0.01" data-advkey="${k}" value="${advCfg[k]}" style="width:90px; padding:5px 7px; border:1px solid var(--line); border-radius:6px;">
     </div>`).join('');
