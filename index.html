@@ -17,10 +17,20 @@
     --danger:#b0201a; --danger-soft:#fce3e1; --caution:#8a6d1a; --caution-soft:#fbf2d5;
     --mono: 'IBM Plex Mono','SF Mono',Consolas,monospace;
     --sans: 'IBM Plex Sans','Segoe UI',Arial,sans-serif;
-    --surface-alt:var(--surface-alt); --input-bg:var(--input-bg); --accent-dark:var(--accent-dark); --accent-softer:var(--accent-softer);
+    --surface-alt:#f2efe7; --input-bg:#ffffff; --accent-dark:#8f3f19; --accent-softer:#f7ede3;
     --fs-2xs:9.5px; --fs-xs:10px; --fs-sm:10.5px; --fs-base:11.5px; --fs-md:12px; --fs-lg:12.5px;
     --fs-xl:15px; --fs-2xl:18px; --fs-3xl:20px;
   }
+  [data-theme="dark"]{
+    --ink:#eae7de; --paper:#141613; --card:#1d201c; --line:#33362f;
+    --accent:#e08856; --accent-soft:#3a2c22; --muted:#9a988e;
+    --good:#5fbd82; --good-soft:#1d2e21; --warn:#e2795a; --warn-soft:#33221b;
+    --danger:#e2554c; --danger-soft:#38211f; --caution:#e0bd52; --caution-soft:#332c17;
+    --surface-alt:#23261f; --input-bg:#20231e; --accent-dark:#f2a679; --accent-softer:#2c241d;
+  }
+  [data-theme="dark"] body{background:var(--paper); color:var(--ink);}
+  .theme-toggle{background:none; border:1px solid var(--line); color:var(--muted); border-radius:20px; padding:5px 12px; font-size:var(--fs-sm); font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
+  .theme-toggle:hover{border-color:var(--accent); color:var(--accent);}
   *{box-sizing:border-box;}
   *:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
   body{margin:0; font-family:var(--sans); background:var(--paper); color:var(--ink); padding:20px 20px 60px; line-height:1.5;}
@@ -46,6 +56,11 @@
   .field label{display:block; font-size:var(--fs-xs); color:var(--muted); margin-bottom:2px; white-space:nowrap;}
   .field input{width:100px; padding:5px 7px; font-family:var(--mono); font-size:var(--fs-lg); border:1px solid var(--line); border-radius:6px; background:var(--input-bg); color:var(--ink);}
   .field input:focus{outline:2px solid var(--accent-soft); border-color:var(--accent);}
+  .field input.invalid{border-color:var(--danger); background:var(--danger-soft);}
+  .field .field-error-msg{font-size:8.5px; color:var(--danger); font-weight:600; margin-top:2px; max-width:130px; white-space:normal; display:none;}
+  .field .field-error-msg.show{display:block;}
+  .help-icon{display:inline-flex; align-items:center; justify-content:center; width:12px; height:12px; border-radius:50%; background:var(--accent-soft); color:var(--accent); font-size:8.5px; font-weight:700; font-style:normal; margin-left:4px; cursor:help; vertical-align:1px;}
+  .help-icon:hover{background:var(--accent); color:#fff;}
   .field.auto label{color:var(--accent);}
   .field.auto input{background:var(--accent-softer); border-color:var(--accent-soft);}
   .field.auto{min-width:130px;}
@@ -258,7 +273,7 @@
   <div class="modal-box" style="max-width:520px;">
     <div class="modal-head">
       <h3>⚙️ Advanced Settings</h3>
-      <button type="button" class="modal-close" id="advClose">✕</button>
+      <button type="button" class="modal-close" id="advClose" aria-label="Close advanced settings">✕</button>
     </div>
     <div class="modal-body" style="padding:14px 18px;">
       <div class="note" style="margin-bottom:10px;">Ye internal assumption ranges hain (Consistency Scan aur Goal Seek ke liye). Session ke liye hi rehte hain, save nahi hote.</div>
@@ -268,7 +283,14 @@
   </div>
 </div>
 <div class="wrap">
-  <h1 style="font-size:28px;">Tile Plant Production Capacity Calculator</h1>
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+    <h1 style="font-size:28px;">Tile Plant Production Capacity Calculator</h1>
+    <button type="button" class="theme-toggle" id="themeToggleBtn" aria-label="Toggle dark mode" title="Toggle dark mode (light/dark)">
+      <svg id="themeIconSun" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+      <svg id="themeIconMoon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path></svg>
+      <span id="themeToggleText">Dark</span>
+    </button>
+  </div>
   <div class="sub" style="font-weight:700; font-size:var(--fs-2xl); color:var(--ink);">Created by - Abhishek Singh Rathore</div>
 
   <div class="infobox" style="display:block; background:#fbe2e2; color:#a3391c; white-space:nowrap; overflow-x:auto;">⚠️ Somtimes cavity formula subtracts an extra "-1" but Sometimes doesn't — so <b>Effective Cavity</b> is never auto-filled, only suggested.</div>
@@ -526,7 +548,7 @@
   <div class="modal-box modal-box-wide">
     <div class="modal-head">
       <h3>📋 Press Reference Catalog</h3>
-      <button type="button" class="modal-close" id="catalogClose">✕</button>
+      <button type="button" class="modal-close" id="catalogClose" aria-label="Close press catalog">✕</button>
     </div>
     <div class="modal-search">
       <input type="text" id="catalogSearch" placeholder="Search by Make, Model, Product, or Size...">
@@ -664,7 +686,7 @@ function renderKilnList(){
         <label style="display:inline-flex; align-items:center; gap:5px; font-family:var(--sans); font-size:var(--fs-md); font-weight:700; color:var(--accent); cursor:pointer;">
           <input type="checkbox" data-kilnsel="${i}" ${k.selected?'checked':''}> Kiln ${i+1}${k.selected?'':' (excluded from total)'}
         </label>
-        ${kilns.length>1?`<button type="button" class="del" data-kdel="${i}">✕</button>`:''}
+        ${kilns.length>1?`<button type="button" class="del" data-kdel="${i}" aria-label="Delete kiln entry">✕</button>`:''}
       </div>
       <div class="subgroup-label">Module &amp; Length</div>
       <div class="machine-row three">
@@ -706,7 +728,7 @@ function renderKilnList(){
     cb.addEventListener('change', ()=>{ kilns[parseInt(cb.dataset.kilnsel)].selected = cb.checked; renderKilnList(); render(); });
   });
   container.querySelectorAll('[data-kdel]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ if(!confirm('Delete this Kiln entry?')) return; kilns.splice(parseInt(btn.dataset.kdel),1); renderKilnList(); render(); });
+    btn.addEventListener('click', ()=>{ if(!confirm('Delete this Kiln entry?')) return; pushUndo(); kilns.splice(parseInt(btn.dataset.kdel),1); renderKilnList(); render(); });
   });
   container.querySelectorAll('.use-ktr-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{ const i=parseInt(btn.dataset.i); kilns[i].tR = kilnSuggestTR(kilns[i]).val; renderKilnList(); render(); });
@@ -723,6 +745,7 @@ function renderKilnOutputs(){
   });
 }
 document.getElementById('addKilnBtn').addEventListener('click', ()=>{
+  pushUndo();
   kilns.push({moduleLen:2.1, moduleCount:150, kilnW:2.95, kilnCyc:35, kilnGap:0.45, kilnUtil:99, tR:4, tL:236.6218, selected:true});
   renderKilnList();
   render();
@@ -754,7 +777,7 @@ function renderPressList(){
     const div=document.createElement('div');
     div.className='machine-item';
     div.innerHTML=`
-      <div class="machine-item-head"><span class="letter">Press ${i+1}</span><span><button type="button" class="catalog-btn open-catalog-btn" data-i="${i}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="1"></rect><rect x="9" y="2" width="6" height="4" rx="1"></rect><path d="M9 11h6"></path><path d="M9 15h6"></path></svg>Catalog</button> ${presses.length>1?`<button type="button" class="del" data-i="${i}">✕</button>`:''}</span></div>
+      <div class="machine-item-head"><span class="letter">Press ${i+1}</span><span><button type="button" class="catalog-btn open-catalog-btn" data-i="${i}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="1"></rect><rect x="9" y="2" width="6" height="4" rx="1"></rect><path d="M9 11h6"></path><path d="M9 15h6"></path></svg>Catalog</button> ${presses.length>1?`<button type="button" class="del" data-i="${i}" aria-label="Delete press entry">✕</button>`:''}</span></div>
       <div class="subgroup-label">Geometry</div>
       <div class="machine-row three">
         <div><label>CC Distance (mm)</label><input type="number" data-field="CCdis" data-i="${i}" value="${p.CCdis}"></div>
@@ -786,7 +809,7 @@ function renderPressList(){
     });
   });
   container.querySelectorAll('.del').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ if(!confirm('Delete this Press entry?')) return; presses.splice(parseInt(btn.dataset.i),1); renderPressList(); render(); });
+    btn.addEventListener('click', ()=>{ if(!confirm('Delete this Press entry?')) return; pushUndo(); presses.splice(parseInt(btn.dataset.i),1); renderPressList(); render(); });
   });
   container.querySelectorAll('.use-cav-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -801,6 +824,7 @@ function renderPressList(){
   });
 }
 document.getElementById('addPressBtn').addEventListener('click', ()=>{
+  pushUndo();
   presses.push({CCdis:2450, IFgap:100, GapBC:90, effCav:2, pressCap:7890, pressEff:90, cyc:8, workHours:21.6, qty:1});
   renderPressList();
   render();
@@ -866,7 +890,7 @@ function renderCatalogTable(filterText){
     if(f && !hay.includes(f)) return;
     const tr=document.createElement('tr');
     tr.innerHTML=`<td>${row.make}</td><td>${row.model}${row.custom?'<span class="custom-badge">custom</span>':''}</td><td>${row.product||'—'}</td><td>${row.size}</td><td>${row.cavity}</td><td>${row.thickness}</td><td>${row.cycle}</td>
-      <td style="white-space:nowrap;"><button type="button" class="catalog-use-btn" data-idx="${idx}">Use →</button>${row.custom?`<button type="button" class="catalog-del" data-delidx="${idx}" title="Delete custom entry">✕</button>`:''}</td>`;
+      <td style="white-space:nowrap;"><button type="button" class="catalog-use-btn" data-idx="${idx}">Use →</button>${row.custom?`<button type="button" class="catalog-del" data-delidx="${idx}" title="Delete custom entry" aria-label="Delete custom catalog entry">✕</button>`:''}</td>`;
     tbody.appendChild(tr);
   });
   tbody.querySelectorAll('.catalog-use-btn').forEach(btn=>{
@@ -1195,6 +1219,7 @@ function render(){
   renderWarnings(r);
   if(typeof renderSizeMatrixResult==='function') renderSizeMatrixResult();
   autoSave();
+  if(typeof initFieldTooltips==='function') initFieldTooltips();
   return r;
 }
 
@@ -1359,7 +1384,7 @@ function renderSizeMatrixList(){
     const div=document.createElement('div');
     div.className='machine-item';
     div.innerHTML=`
-      <div class="machine-item-head"><span class="letter">Size ${i+1}</span><button type="button" class="del" data-sdel="${i}">✕</button></div>
+      <div class="machine-item-head"><span class="letter">Size ${i+1}</span><button type="button" class="del" data-sdel="${i}" aria-label="Delete size row">✕</button></div>
       <div class="machine-row three">
         <div><label>Name (optional)</label><input type="text" data-sfield="name" data-i="${i}" value="${s.name}"></div>
         <div><label>Length (cm)</label><input type="number" data-sfield="C" data-i="${i}" value="${s.C}"></div>
@@ -1458,7 +1483,7 @@ function renderMachineList(containerId, arr, fields, onChange){
     const div=document.createElement('div');
     div.className='machine-item';
     let rowHtml = `<div class="machine-item-head"><span class="letter">${letterName(i)}</span>`;
-    if(arr.length>1) rowHtml += `<button type="button" class="del" data-i="${i}">✕</button>`;
+    if(arr.length>1) rowHtml += `<button type="button" class="del" data-i="${i}" aria-label="Delete row">✕</button>`;
     rowHtml += `</div><div class="machine-row ${fields.length===3?'three':''}">`;
     fields.forEach(f=>{
       rowHtml += `<div><label>${f.label}</label><input type="number" step="${f.step||1}" data-field="${f.key}" data-i="${i}" value="${item[f.key]}"></div>`;
@@ -2143,6 +2168,186 @@ document.getElementById('advSaveBtn').addEventListener('click', ()=>{
   document.getElementById('advModal').classList.remove('open');
   render();
 });
+// ---------- Dark mode toggle ----------
+const THEME_KEY = 'tileCalcTheme';
+function applyTheme(mode){
+  if(mode==='dark'){ document.documentElement.setAttribute('data-theme','dark'); document.getElementById('themeIconSun').style.display='none'; document.getElementById('themeIconMoon').style.display='inline'; document.getElementById('themeToggleText').textContent='Light'; }
+  else { document.documentElement.removeAttribute('data-theme'); document.getElementById('themeIconSun').style.display='inline'; document.getElementById('themeIconMoon').style.display='none'; document.getElementById('themeToggleText').textContent='Dark'; }
+}
+const __savedTheme = localStorage.getItem(THEME_KEY) || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+applyTheme(__savedTheme);
+document.getElementById('themeToggleBtn').addEventListener('click', ()=>{
+  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+  const next = isDark ? 'light' : 'dark';
+  applyTheme(next);
+  localStorage.setItem(THEME_KEY, next);
+});
+
+// ---------- Keyboard shortcuts (Ctrl+S save session, Ctrl+P print) ----------
+document.addEventListener('keydown', (e)=>{
+  const ctrlOrCmd = e.ctrlKey || e.metaKey;
+  if(!ctrlOrCmd) return;
+  if(e.key==='s' || e.key==='S'){
+    e.preventDefault();
+    document.getElementById('sessionSaveBtn').click();
+  } else if(e.key==='p' || e.key==='P'){
+    e.preventDefault();
+    document.getElementById('printBtn').click();
+  } else if(e.key==='z' || e.key==='Z'){
+    e.preventDefault();
+    performUndo();
+  }
+});
+
+// ---------- Inline field-level validation (negative-value check on number inputs) ----------
+function ensureErrorMsg(input){
+  let msg = input.nextElementSibling;
+  if(!msg || !msg.classList || !msg.classList.contains('field-error-msg')){
+    msg = document.createElement('div');
+    msg.className = 'field-error-msg';
+    input.insertAdjacentElement('afterend', msg);
+  }
+  return msg;
+}
+function validateNumberInput(input){
+  if(input.type!=='number') return;
+  const field = input.closest('.field');
+  if(!field) return;
+  const val = input.value;
+  let errorText = '';
+  if(val!=='' && !isNaN(parseFloat(val)) && parseFloat(val) < 0){
+    errorText = 'Value cannot be negative';
+  } else if(val!=='' && isNaN(parseFloat(val))){
+    errorText = 'Enter a valid number';
+  }
+  const msg = ensureErrorMsg(input);
+  if(errorText){
+    input.classList.add('invalid');
+    msg.textContent = errorText;
+    msg.classList.add('show');
+  } else {
+    input.classList.remove('invalid');
+    msg.classList.remove('show');
+  }
+}
+document.addEventListener('input', (e)=>{
+  if(e.target && e.target.tagName==='INPUT' && e.target.type==='number' && e.target.closest('.field')){
+    validateNumberInput(e.target);
+  }
+});
+document.addEventListener('blur', (e)=>{
+  if(e.target && e.target.tagName==='INPUT' && e.target.type==='number' && e.target.closest('.field')){
+    validateNumberInput(e.target);
+  }
+}, true);
+
+// ---------- Field glossary tooltips (help icons for domain terms) ----------
+const FIELD_GLOSSARY = {
+  'CC Distance (mm)': 'Center-to-center distance between mould cavities on the press bed.',
+  'I/F Gap (mm)': 'Inter-facial gap — spacing between adjoining cavities, used to derive the effective cavity count.',
+  'Gap Between Cavity (mm)': 'GapBC — gap between cavity groups on the press bed.',
+  'Effective Cavity': 'Actual usable mould cavities. Never auto-filled — always confirm manually, since the source reference data has an intentional inconsistency between rows.',
+  'T/R': 'Tiles per Row — number of tiles across the kiln width per firing row.',
+  'T/L': 'Tiles per Layer — very sensitive to rounding. Always click "Use suggested value →".',
+  'Bulk Density BD (g/cc)': 'BD — weight of dried/compacted powder per unit volume.',
+  'Shrinkage (%)': 'Firing shrinkage — reduction in tile size during kiln firing.',
+  'Glaze Line Efficiency (%)': 'Effective run-time efficiency of the glaze line, accounting for stoppages.',
+  'Rectification allowance / side (cm)': 'RL allowance — extra material reserved per side for the Rectification Line trimming.',
+  'Finished / Raw weight ratio': 'Yield ratio — finished (fired) tile weight divided by raw (green) body weight.',
+};
+function initFieldTooltips(){
+  document.querySelectorAll('label').forEach(label=>{
+    if(label.querySelector('.help-icon') || label.querySelector('input')) return;
+    const key = label.textContent.trim();
+    if(FIELD_GLOSSARY[key]){
+      const icon = document.createElement('span');
+      icon.className = 'help-icon';
+      icon.textContent = 'i';
+      icon.title = FIELD_GLOSSARY[key];
+      icon.setAttribute('tabindex','0');
+      icon.setAttribute('aria-label', 'Help: ' + FIELD_GLOSSARY[key]);
+      label.appendChild(icon);
+    }
+  });
+}
+
+// ---------- Collapsible stage sections (with localStorage memory) ----------
+const COLLAPSE_KEY = 'tileCalcCollapsedStages';
+function getCollapseState(){ try{ return JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || {}; }catch(e){ return {}; } }
+function setCollapseState(state){ try{ localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state)); }catch(e){} }
+function initCollapsibleStages(){
+  const state = getCollapseState();
+  document.querySelectorAll('.stage').forEach(stage=>{
+    const h2 = stage.querySelector('h2');
+    if(!h2 || h2.querySelector('.hide-toggle')) return;
+    const title = h2.textContent.trim();
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'hide-toggle';
+    const isCollapsed = !!state[title];
+    btn.textContent = isCollapsed ? 'Show' : 'Hide';
+    btn.setAttribute('aria-label', (isCollapsed?'Expand ':'Collapse ') + title + ' section');
+    h2.appendChild(btn);
+    if(isCollapsed) stage.classList.add('collapsed');
+    btn.addEventListener('click', ()=>{
+      const collapsed = stage.classList.toggle('collapsed');
+      btn.textContent = collapsed ? 'Show' : 'Hide';
+      btn.setAttribute('aria-label', (collapsed?'Expand ':'Collapse ') + title + ' section');
+      const st = getCollapseState();
+      st[title] = collapsed;
+      setCollapseState(st);
+    });
+  });
+}
+
+// ---------- Undo (Ctrl+Z) for field edits and press/kiln add-delete ----------
+let undoStack = [];
+const MAX_UNDO = 25;
+function collectFormValuesForUndo(){
+  const fv = {};
+  AUTOSAVE_FORM_IDS.forEach(id=>{ const el=document.getElementById(id); if(el) fv[id]=el.value; });
+  return fv;
+}
+function snapshotState(){
+  return JSON.stringify({formValues: collectFormValuesForUndo(), presses, kilns});
+}
+function pushUndo(){
+  const snap = snapshotState();
+  if(undoStack.length && undoStack[undoStack.length-1]===snap) return;
+  undoStack.push(snap);
+  if(undoStack.length>MAX_UNDO) undoStack.shift();
+}
+function restoreSnapshot(snapStr){
+  try{
+    const snap = JSON.parse(snapStr);
+    if(snap.formValues) Object.keys(snap.formValues).forEach(id=>{ const el=document.getElementById(id); if(el) el.value=snap.formValues[id]; });
+    if(Array.isArray(snap.presses) && snap.presses.length) presses = snap.presses;
+    if(Array.isArray(snap.kilns) && snap.kilns.length) kilns = snap.kilns;
+    renderPressList();
+    renderKilnList();
+    updateAllCavityNotes();
+    updateAllKilnDerived();
+    render();
+    initFieldTooltips();
+  }catch(e){ /* ignore corrupt snapshot */ }
+}
+function performUndo(){
+  if(undoStack.length<2){ flashSaveIndicator('Nothing to undo'); return; }
+  undoStack.pop();
+  const prev = undoStack[undoStack.length-1];
+  restoreSnapshot(prev);
+  flashSaveIndicator('Undone');
+}
+document.addEventListener('change', (e)=>{
+  const el = e.target;
+  if(el.tagName==='INPUT' && el.type==='number'){ pushUndo(); }
+});
+
+// ---------- Init tooltips, collapsible sections, and undo baseline (after first render) ----------
+initFieldTooltips();
+initCollapsibleStages();
+pushUndo();
+
 if('serviceWorker' in navigator){ window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 </script>
 </body>
