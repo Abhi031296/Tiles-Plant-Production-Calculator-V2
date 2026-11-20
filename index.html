@@ -800,7 +800,9 @@ body.blocks #tab-rawmat .statusbadge{margin-top:0;}
 #emptyNote svg{margin:0 !important; width:20px; height:20px; flex:0 0 auto;}
 #emptyNote div{margin:0 !important;}
 #historyTable col:nth-child(n+3):nth-child(-n+10){width:auto !important;}
-#historyTable col:nth-child(3){width:175px !important;}   /* inline 62px widths truncated "24,8…" */
+#historyTable col:nth-child(3){width:175px !important;}
+/* v42_2: History table headers wrap instead of being cut (cells keep ellipsis) */
+#historyTable thead th{white-space:normal !important; overflow:visible !important; line-height:1.25; text-overflow:clip;}   /* inline 62px widths truncated "24,8…" */
 #tab-history .chartcard{padding:10px 14px; margin-top:8px;}
 #tab-history .chart-holder{height:240px;}
 
